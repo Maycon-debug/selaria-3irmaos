@@ -3,6 +3,7 @@
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { TextToSpeech } from "./text-to-speech"
 
 interface Product {
   id: string
@@ -80,19 +81,19 @@ export function ProductCarousel({ products, className }: ProductCarouselProps) {
   }
 
   return (
-    <div className={cn("relative w-full max-w-7xl mx-auto px-4", className)}>
+    <div className={cn("relative w-full max-w-7xl mx-auto px-2 sm:px-4", className)}>
       {/* Carrossel Container */}
       <div
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl border border-neutral-800/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] p-6"
+        className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl border border-neutral-800/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] p-3 sm:p-4 md:p-6"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
         {/* Efeito espelho/glassmorphism */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/5 to-transparent pointer-events-none rounded-2xl" />
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,rgba(255,255,255,0.08)_50%,transparent_100%)] pointer-events-none opacity-60 rounded-2xl" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/5 to-transparent pointer-events-none rounded-xl sm:rounded-2xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,rgba(255,255,255,0.08)_50%,transparent_100%)] pointer-events-none opacity-60 rounded-xl sm:rounded-2xl" />
         <div className="relative z-10">
           {/* Slides */}
-          <div className="relative h-[500px] md:h-[600px] z-10">
+          <div className="relative h-[400px] sm:h-[500px] md:h-[600px] z-10">
           {products.map((product, index) => (
             <div
               key={product.id}
@@ -105,13 +106,13 @@ export function ProductCarousel({ products, className }: ProductCarouselProps) {
                   : "opacity-0 translate-x-full scale-95"
               )}
             >
-              <div className="grid md:grid-cols-2 gap-8 h-full items-center">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 h-full items-center">
                 {/* Imagem com Zoom e Pan */}
                 <div 
                   ref={(el) => {
                     imageRefs.current[product.id] = el
                   }}
-                  className="relative h-full rounded-xl overflow-hidden bg-neutral-950 border border-neutral-800/50 group cursor-zoom-in"
+                  className="relative h-48 sm:h-64 md:h-full rounded-lg sm:rounded-xl overflow-hidden bg-neutral-950 border border-neutral-800/50 group cursor-zoom-in"
                   onMouseMove={(e) => handleMouseMove(e, product.id)}
                   onMouseLeave={() => handleMouseLeave(product.id)}
                 >
@@ -135,28 +136,34 @@ export function ProductCarousel({ products, className }: ProductCarouselProps) {
                   {/* Overlay Gradient para melhor contraste */}
                   <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                   {/* Indicador de zoom */}
-                  <div className="absolute top-4 right-4 bg-neutral-900/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none border border-neutral-700/50 shadow-lg">
+                  <div className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-neutral-900/90 backdrop-blur-sm text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none border border-neutral-700/50 shadow-lg hidden sm:block">
                     🔍 Mova o mouse para explorar
                   </div>
                 </div>
 
                 {/* Descrição */}
-                <div className="flex flex-col justify-center space-y-4 px-4">
-                  <h3 className="text-3xl md:text-4xl font-bold text-white tracking-tight drop-shadow-lg">
+                <div className="flex flex-col justify-center space-y-2 sm:space-y-3 md:space-y-4 px-2 sm:px-4">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight drop-shadow-lg">
                     {product.name}
                   </h3>
-                  <p className="text-neutral-200 text-lg leading-relaxed">
-                    {product.description}
-                  </p>
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <p className="text-neutral-200 text-sm sm:text-base md:text-lg leading-relaxed flex-1">
+                      {product.description}
+                    </p>
+                    <TextToSpeech 
+                      text={product.description}
+                      className="flex-shrink-0 mt-1"
+                    />
+                  </div>
                   {product.price && (
-                    <div className="pt-4">
-                      <span className="text-2xl font-semibold text-white drop-shadow-md">
+                    <div className="pt-2 sm:pt-4">
+                      <span className="text-xl sm:text-2xl font-semibold text-white drop-shadow-md">
                         {product.price}
                       </span>
                     </div>
                   )}
                   <div className="pt-2">
-                    <button className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-all duration-200 border border-white/20 backdrop-blur-sm hover:shadow-lg shadow-md">
+                    <button className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-all duration-200 border border-white/20 backdrop-blur-sm hover:shadow-lg shadow-md text-sm sm:text-base">
                       Ver Detalhes
                     </button>
                   </div>
@@ -169,30 +176,30 @@ export function ProductCarousel({ products, className }: ProductCarouselProps) {
           {/* Navegação - Setas */}
           <button
             onClick={prevSlide}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white hover:text-white transition-all duration-200 backdrop-blur-sm shadow-lg hover:shadow-xl"
+            className="absolute left-1 sm:left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 p-2 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white hover:text-white transition-all duration-200 backdrop-blur-sm shadow-lg hover:shadow-xl"
             aria-label="Slide anterior"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
           </button>
           <button
             onClick={nextSlide}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white hover:text-white transition-all duration-200 backdrop-blur-sm shadow-lg hover:shadow-xl"
+            className="absolute right-1 sm:right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 p-2 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white hover:text-white transition-all duration-200 backdrop-blur-sm shadow-lg hover:shadow-xl"
             aria-label="Próximo slide"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
           </button>
 
           {/* Indicadores */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+          <div className="absolute bottom-3 sm:bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-20">
             {products.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
                 className={cn(
-                  "h-2 rounded-full transition-all duration-300",
+                  "h-1.5 sm:h-2 rounded-full transition-all duration-300",
                   index === currentIndex
-                    ? "w-8 bg-white/90"
-                    : "w-2 bg-white/40 hover:bg-white/60"
+                    ? "w-6 sm:w-8 bg-white/90"
+                    : "w-1.5 sm:w-2 bg-white/40 hover:bg-white/60"
                 )}
                 aria-label={`Ir para slide ${index + 1}`}
               />

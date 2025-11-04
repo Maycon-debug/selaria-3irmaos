@@ -4,6 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { Heart, ShoppingCart, Star } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { AddToCartModal } from "./add-to-cart-modal"
 
 interface Product {
   id: string
@@ -23,6 +24,23 @@ interface ProductGridProps {
 export function ProductGrid({ products, className }: ProductGridProps) {
   const [favorites, setFavorites] = React.useState<Set<string>>(new Set())
   const [hoveredProduct, setHoveredProduct] = React.useState<string | null>(null)
+  const [modalOpen, setModalOpen] = React.useState(false)
+  const [addedProduct, setAddedProduct] = React.useState<Product | null>(null)
+
+  // Carregar favoritos do localStorage
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("favorites")
+      if (saved) {
+        try {
+          const productIds = JSON.parse(saved)
+          setFavorites(new Set(productIds))
+        } catch (error) {
+          console.error("Erro ao carregar favoritos:", error)
+        }
+      }
+    }
+  }, [])
 
   const toggleFavorite = (productId: string, e: React.MouseEvent) => {
     e.preventDefault()
@@ -34,136 +52,208 @@ export function ProductGrid({ products, className }: ProductGridProps) {
       } else {
         newSet.add(productId)
       }
+      
+      // Salvar no localStorage
+      if (typeof window !== "undefined") {
+        try {
+          const productIds = Array.from(newSet)
+          localStorage.setItem("favorites", JSON.stringify(productIds))
+        } catch (error) {
+          console.error("Erro ao salvar favoritos:", error)
+        }
+      }
+      
       return newSet
     })
+    
+    // Redirecionar para página de favoritos se foi adicionado
+    if (!favorites.has(productId)) {
+      setTimeout(() => {
+        window.location.href = "/favoritos"
+      }, 300)
+    }
+  }
+
+  const handleAddToCart = (product: Product, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    // Adicionar ao carrinho no localStorage
+    if (typeof window !== "undefined") {
+      try {
+        const cart = JSON.parse(localStorage.getItem("cart") || "[]")
+        const existingItem = cart.find((item: any) => item.id === product.id)
+        
+        // Converter preço de string para número
+        const priceStr = product.price.replace("R$", "").trim()
+        const price = parseFloat(priceStr.replace(/\./g, "").replace(",", "."))
+        
+        if (existingItem) {
+          existingItem.quantity += 1
+        } else {
+          cart.push({
+            id: product.id,
+            name: product.name,
+            price: price,
+            image: product.image,
+            quantity: 1,
+          })
+        }
+        
+        localStorage.setItem("cart", JSON.stringify(cart))
+        setAddedProduct(product)
+        setModalOpen(true)
+      } catch (error) {
+        console.error("Erro ao adicionar ao carrinho:", error)
+      }
+    }
+  }
+
+  const handleContinueShopping = () => {
+    setModalOpen(false)
+    setAddedProduct(null)
+  }
+
+  const handleGoToCart = () => {
+    setModalOpen(false)
+    setAddedProduct(null)
+    window.location.href = "/carrinho"
   }
 
   return (
-    <div className={cn("w-full max-w-7xl mx-auto px-4 py-16", className)}>
-      <div className="text-center mb-12">
-        <h2 className="text-4xl font-bold text-neutral-800 mb-3 tracking-tight drop-shadow-sm">
-          Produtos em Destaque
-        </h2>
-        <p className="text-neutral-700 text-lg">
-          Seleção especial dos nossos melhores produtos
-        </p>
-      </div>
+    <>
+      <div className={cn("w-full max-w-7xl mx-auto px-2 sm:px-4 py-8 sm:py-12 md:py-16", className)}>
+        <div className="text-center mb-8 sm:mb-10 md:mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-800 mb-2 sm:mb-3 tracking-tight drop-shadow-sm">
+            Produtos em Destaque
+          </h2>
+          <p className="text-neutral-700 text-sm sm:text-base md:text-lg px-4">
+            Seleção especial dos nossos melhores produtos
+          </p>
+        </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {products.map((product) => (
-          <Link
-            key={product.id}
-            href={`/produtos/${product.id}`}
-            className="group relative"
-            onMouseEnter={() => setHoveredProduct(product.id)}
-            onMouseLeave={() => setHoveredProduct(null)}
-          >
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl border border-neutral-800/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] transition-all duration-300 hover:shadow-[0_12px_48px_0_rgba(0,0,0,0.6)] hover:scale-[1.02]">
-              {/* Efeito espelho/glassmorphism */}
-              <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-white/3 to-transparent pointer-events-none rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,rgba(255,255,255,0.05)_50%,transparent_100%)] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
-              
-              <div className="relative z-10">
-                {/* Imagem do Produto */}
-                <div className="relative h-64 overflow-hidden bg-neutral-950">
-                  <div
-                    className={cn(
-                      "absolute inset-0 transition-transform duration-700 ease-out",
-                      hoveredProduct === product.id ? "scale-110" : "scale-100"
-                    )}
-                    style={{
-                      backgroundImage: `url(${product.image})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      backgroundRepeat: "no-repeat",
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/80 via-transparent to-transparent" />
-                  
-                  {/* Badge de favorito */}
-                  <button
-                    onClick={(e) => toggleFavorite(product.id, e)}
-                    className={cn(
-                      "absolute top-3 right-3 z-20 p-2 rounded-full backdrop-blur-sm transition-all duration-300",
-                      favorites.has(product.id)
-                        ? "bg-red-500/90 text-white border border-red-400/50"
-                        : "bg-white/10 hover:bg-white/20 text-neutral-300 hover:text-white border border-white/20"
-                    )}
-                    aria-label="Adicionar aos favoritos"
-                  >
-                    <Heart
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
+          {products.map((product) => (
+            <div
+              key={product.id}
+              className="group relative"
+              onMouseEnter={() => setHoveredProduct(product.id)}
+              onMouseLeave={() => setHoveredProduct(null)}
+            >
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl border border-neutral-800/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] transition-all duration-300 hover:shadow-[0_12px_48px_0_rgba(0,0,0,0.6)] hover:scale-[1.02]">
+                {/* Efeito espelho/glassmorphism */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-white/3 to-transparent pointer-events-none rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,rgba(255,255,255,0.05)_50%,transparent_100%)] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
+                
+                <div className="relative z-10">
+                  {/* Imagem do Produto */}
+                  <div className="relative h-64 overflow-hidden bg-neutral-950">
+                    <div
                       className={cn(
-                        "h-4 w-4 transition-all duration-300",
-                        favorites.has(product.id) && "fill-current"
+                        "absolute inset-0 transition-transform duration-700 ease-out",
+                        hoveredProduct === product.id ? "scale-110" : "scale-100"
                       )}
+                      style={{
+                        backgroundImage: `url(${product.image})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        backgroundRepeat: "no-repeat",
+                      }}
                     />
-                  </button>
+                    <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/80 via-transparent to-transparent" />
+                    
+                    {/* Badge de favorito */}
+                    <button
+                      onClick={(e) => toggleFavorite(product.id, e)}
+                      className={cn(
+                        "absolute top-3 right-3 z-20 p-2 rounded-full backdrop-blur-sm transition-all duration-300",
+                        favorites.has(product.id)
+                          ? "bg-red-500/90 text-white border border-red-400/50"
+                          : "bg-white/10 hover:bg-white/20 text-neutral-300 hover:text-white border border-white/20"
+                      )}
+                      aria-label="Adicionar aos favoritos"
+                    >
+                      <Heart
+                        className={cn(
+                          "h-4 w-4 transition-all duration-300",
+                          favorites.has(product.id) && "fill-current"
+                        )}
+                      />
+                    </button>
 
-                  {/* Badge de categoria */}
-                  {product.category && (
-                    <div className="absolute top-3 left-3 z-20 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-xs font-medium border border-white/20">
-                      {product.category}
-                    </div>
-                  )}
-                </div>
-
-                {/* Conteúdo do Card */}
-                <div className="p-5 space-y-3">
-                  {/* Rating */}
-                  {product.rating && (
-                    <div className="flex items-center gap-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={cn(
-                            "h-3.5 w-3.5",
-                            i < Math.floor(product.rating!)
-                              ? "fill-yellow-400 text-yellow-400"
-                              : "text-neutral-600"
-                          )}
-                        />
-                      ))}
-                      <span className="text-xs text-neutral-400 ml-1">
-                        ({product.rating})
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Nome do Produto */}
-                  <h3 className="text-lg font-semibold text-white line-clamp-2 group-hover:text-white transition-colors">
-                    {product.name}
-                  </h3>
-
-                  {/* Preço */}
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xl font-bold text-white">
-                      {product.price}
-                    </span>
-                    {product.originalPrice && (
-                      <span className="text-sm text-neutral-500 line-through">
-                        {product.originalPrice}
-                      </span>
+                    {/* Badge de categoria */}
+                    {product.category && (
+                      <div className="absolute top-3 left-3 z-20 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-xs font-medium border border-white/20">
+                        {product.category}
+                      </div>
                     )}
                   </div>
 
-                  {/* Botão de Adicionar ao Carrinho */}
-                  <button
-                    className="w-full mt-4 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-all duration-300 border border-white/20 hover:border-white/30 backdrop-blur-sm hover:shadow-lg flex items-center justify-center gap-2 group/btn"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                    }}
-                  >
-                    <ShoppingCart className="h-4 w-4 group-hover/btn:scale-110 transition-transform" />
-                    Adicionar ao Carrinho
-                  </button>
+                  {/* Conteúdo do Card */}
+                  <div className="p-5 space-y-3">
+                    {/* Rating */}
+                    {product.rating && (
+                      <div className="flex items-center gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={cn(
+                              "h-3.5 w-3.5",
+                              i < Math.floor(product.rating!)
+                                ? "fill-yellow-400 text-yellow-400"
+                                : "text-neutral-600"
+                            )}
+                          />
+                        ))}
+                        <span className="text-xs text-neutral-400 ml-1">
+                          ({product.rating})
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Nome do Produto */}
+                    <h3 className="text-lg font-semibold text-white line-clamp-2 group-hover:text-white transition-colors">
+                      {product.name}
+                    </h3>
+
+                    {/* Preço */}
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-xl font-bold text-white">
+                        {product.price}
+                      </span>
+                      {product.originalPrice && (
+                        <span className="text-sm text-neutral-500 line-through">
+                          {product.originalPrice}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Botão de Adicionar ao Carrinho */}
+                    <button
+                      className="w-full mt-4 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-all duration-300 border border-white/20 hover:border-white/30 backdrop-blur-sm hover:shadow-lg flex items-center justify-center gap-2 group/btn"
+                      onClick={(e) => handleAddToCart(product, e)}
+                    >
+                      <ShoppingCart className="h-4 w-4 group-hover/btn:scale-110 transition-transform" />
+                      Adicionar ao Carrinho
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </Link>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
+
+      {/* Modal de Adicionar ao Carrinho */}
+      {addedProduct && (
+        <AddToCartModal
+          isOpen={modalOpen}
+          productName={addedProduct.name}
+          onContinue={handleContinueShopping}
+          onGoToCart={handleGoToCart}
+          onClose={handleContinueShopping}
+        />
+      )}
+    </>
   )
 }
-

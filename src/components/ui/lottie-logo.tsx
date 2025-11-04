@@ -24,15 +24,9 @@ export function LottieLogo({
   const [loading, setLoading] = React.useState(true)
 
   React.useEffect(() => {
-    // URLs para animação de cavalo correndo do LottieFiles
+    // URLs para animação do LottieFiles
     const urls = [
       animationUrl,
-      "https://assets5.lottiefiles.com/packages/lf20_jcikwtux.json",
-      "https://assets5.lottiefiles.com/packages/lf20_rx8q6g.json",
-      "https://assets5.lottiefiles.com/packages/lf20_ky7q7j.json",
-      "https://assets5.lottiefiles.com/packages/lf20_6m0x3z.json",
-      "https://assets5.lottiefiles.com/packages/lf20_yjqgqg.json",
-      "https://assets5.lottiefiles.com/packages/lf20_8j8j8j.json"
     ].filter(Boolean)
 
     const loadAnimation = async () => {

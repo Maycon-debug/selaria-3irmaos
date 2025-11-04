@@ -19,17 +19,17 @@ export function BrandsSection({ brands, className }: BrandsSectionProps) {
   const [hoveredBrand, setHoveredBrand] = React.useState<string | null>(null)
 
   return (
-    <div className={cn("w-full max-w-7xl mx-auto px-4 py-16", className)}>
-      <div className="text-center mb-12">
-        <h2 className="text-4xl font-bold text-neutral-800 mb-3 tracking-tight drop-shadow-sm">
+    <div className={cn("w-full max-w-7xl mx-auto px-2 sm:px-4 py-8 sm:py-12 md:py-16", className)}>
+      <div className="text-center mb-8 sm:mb-10 md:mb-12">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-800 mb-2 sm:mb-3 tracking-tight drop-shadow-sm">
           Nossos Parceiros
         </h2>
-        <p className="text-neutral-700 text-lg">
+        <p className="text-neutral-700 text-sm sm:text-base md:text-lg px-4">
           Trabalhamos com as melhores marcas do mercado
         </p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-6">
         {brands.map((brand) => (
           <div
             key={brand.id}
