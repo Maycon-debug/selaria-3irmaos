@@ -113,12 +113,14 @@ export default function Home() {
               </span>
             </button>
             
-            <Button
-              variant="secondary"
-              className="bg-white/5 backdrop-blur-sm text-neutral-300 hover:text-white hover:bg-white/15 hover:backdrop-blur-md border border-white/10 hover:border-white/30 transition-all duration-300 shadow-sm hover:shadow-md"
-            >
-              Entrar
-            </Button>
+            <Link href="/login">
+              <Button
+                variant="secondary"
+                className="bg-white/5 backdrop-blur-sm text-neutral-300 hover:text-white hover:bg-white/15 hover:backdrop-blur-md border border-white/10 hover:border-white/30 transition-all duration-300 shadow-sm hover:shadow-md"
+              >
+                Entrar
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
@@ -165,35 +167,35 @@ export default function Home() {
             products={[
               {
                 id: "1",
-                name: "Produto Premium",
+                name: "Sela Vaquejada Premium",
                 description:
-                  "Descubra a excelência em cada detalhe. Este produto foi cuidadosamente desenvolvido com materiais de alta qualidade e design sofisticado. Perfeito para quem busca o melhor em tecnologia e estilo.",
+                  "Sela de vaquejada artesanal com couro legítimo de primeira qualidade. Design ergonômico para máximo conforto e segurança durante as competições. Perfeita para atletas profissionais e amadores.",
+                image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=600&fit=crop",
+                price: "R$ 1.899,00",
+              },
+              {
+                id: "2",
+                name: "Sela Vaquejada Clássica",
+                description:
+                  "Sela tradicional com acabamento impecável em couro nobre. Construída com atenção aos mínimos detalhes, oferecendo durabilidade e elegância para o verdadeiro vaqueiro.",
                 image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=600&fit=crop",
                 price: "R$ 1.299,00",
               },
               {
-                id: "2",
-                name: "Design Elegante",
-                description:
-                  "Combinação perfeita entre funcionalidade e estética. Com acabamento impecável e atenção aos mínimos detalhes, este produto eleva seu ambiente para um novo patamar de sofisticação.",
-                image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=600&fit=crop",
-                price: "R$ 899,00",
-              },
-              {
                 id: "3",
-                name: "Inovação Tecnológica",
+                name: "Sela Vaquejada Esportiva",
                 description:
-                  "Experimente o futuro hoje. Este produto incorpora as mais recentes inovações tecnológicas, oferecendo desempenho excepcional e uma experiência de uso incomparável.",
-                image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=800&h=600&fit=crop",
-                price: "R$ 1.599,00",
+                  "Sela desenvolvida especialmente para vaquejada, com tecnologia avançada e materiais de alta performance. Oferece estabilidade e conforto durante as competições mais exigentes.",
+                image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=600&fit=crop",
+                price: "R$ 2.199,00",
               },
               {
                 id: "4",
-                name: "Exclusividade",
+                name: "Sela Vaquejada Exclusiva",
                 description:
-                  "Um item único que reflete sua personalidade. Cada peça é cuidadosamente selecionada para garantir exclusividade e qualidade superior. Uma escolha que faz toda a diferença.",
-                image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=600&fit=crop",
-                price: "R$ 2.199,00",
+                  "Sela única com detalhes personalizados e couro premium. Cada peça é cuidadosamente selecionada para garantir exclusividade e qualidade superior. Uma escolha que faz toda a diferença.",
+                image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=600&fit=crop",
+                price: "R$ 2.599,00",
               },
             ]}
           />
@@ -204,7 +206,7 @@ export default function Home() {
           products={[
             {
               id: "sela-1",
-              name: "Sela Premium de Couro",
+              name: "Sela Vaquejada Premium",
               price: "R$ 1.899,00",
               originalPrice: "R$ 2.299,00",
               image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop",
@@ -213,48 +215,48 @@ export default function Home() {
             },
             {
               id: "arreio-1",
-              name: "Arreio Artesanal Premium",
+              name: "Arreio Vaquejada Artesanal",
               price: "R$ 899,00",
-              image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop",
+              image: "https://images.unsplash.com/photo-1516726817505-f5ed825624d8?w=600&h=600&fit=crop",
               rating: 4.9,
               category: "Arreios",
             },
             {
               id: "bota-1",
-              name: "Bota de Montaria Clássica",
+              name: "Bota Vaquejada Clássica",
               price: "R$ 649,00",
-              image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&h=600&fit=crop",
+              image: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=600&h=600&fit=crop",
               rating: 4.7,
               category: "Botas",
             },
             {
               id: "sela-2",
-              name: "Sela Esportiva Moderna",
+              name: "Sela Vaquejada Esportiva",
               price: "R$ 2.199,00",
-              image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop",
+              image: "https://images.unsplash.com/photo-1516726817505-f5ed825624d8?w=600&h=600&fit=crop",
               rating: 4.6,
               category: "Selas",
             },
             {
               id: "arreio-2",
-              name: "Arreio Deluxe Couro Legítimo",
+              name: "Arreio Vaquejada Deluxe",
               price: "R$ 1.299,00",
               originalPrice: "R$ 1.599,00",
-              image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=600&fit=crop",
+              image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop",
               rating: 5.0,
               category: "Arreios",
             },
             {
               id: "bota-2",
-              name: "Bota de Segurança Premium",
+              name: "Bota Vaquejada Premium",
               price: "R$ 799,00",
-              image: "https://images.unsplash.com/photo-1605812860427-4024433a70fd?w=600&h=600&fit=crop",
+              image: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=600&h=600&fit=crop",
               rating: 4.8,
               category: "Botas",
             },
             {
               id: "sela-3",
-              name: "Sela Western Tradicional",
+              name: "Sela Vaquejada Tradicional",
               price: "R$ 1.599,00",
               image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop",
               rating: 4.5,
@@ -262,9 +264,9 @@ export default function Home() {
             },
             {
               id: "bota-3",
-              name: "Bota de Couro Legítimo",
+              name: "Bota Vaquejada Couro Legítimo",
               price: "R$ 549,00",
-              image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&h=600&fit=crop",
+              image: "https://images.unsplash.com/photo-1516726817505-f5ed825624d8?w=600&h=600&fit=crop",
               rating: 4.9,
               category: "Botas",
             },
