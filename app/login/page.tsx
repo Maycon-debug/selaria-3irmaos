@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { signIn, getSession } from "next-auth/react"
 import Link from "next/link"
 import { Button } from "@/src/components/ui/button"
 import { Input } from "@/src/components/ui/input"
@@ -15,25 +16,86 @@ import {
   CardTitle,
 } from "@/src/components/ui/card"
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react"
+import { useToast } from "@/src/components/ui/toast"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const router = useRouter()
+  const { toast } = useToast()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    // Verificar se já está autenticado
+    const checkSession = async () => {
+      const session = await getSession()
+      if (session) {
+        router.push("/")
+      }
+    }
+    checkSession()
+  }, [router])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Lógica de login aqui
-    console.log("Login:", { email, password })
+    setLoading(true)
+
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        toast({
+          title: "Erro ao fazer login",
+          description: "Email ou senha incorretos",
+          duration: 3000,
+        })
+        return
+      }
+
+      if (result?.ok) {
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Bem-vindo de volta",
+          duration: 3000,
+        })
+        router.push("/")
+        router.refresh()
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao fazer login",
+        duration: 3000,
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true)
+    try {
+      await signIn("google", { callbackUrl: "/" })
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao fazer login com Google",
+        duration: 3000,
+      })
+      setLoading(false)
+    }
   }
 
   const handleCadastroClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
     setIsTransitioning(true)
     
-    // Aguardar animação de saída antes de navegar
     setTimeout(() => {
       router.push("/cadastro")
     }, 400)
@@ -49,190 +111,168 @@ export default function LoginPage() {
 
       {/* Animação de Ondas Elegantes */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.05)_0%,transparent_50%)] animate-pulse-slow" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.03)_0%,transparent_50%)] animate-pulse-slow" style={{ animationDelay: '2s' }} />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(255,255,255,0.04)_0%,transparent_50%)] animate-pulse-slow" style={{ animationDelay: '4s' }} />
-        
-        {/* Ondas suaves */}
-        <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-orange-500/5 via-transparent to-transparent animate-wave" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-white/3 via-transparent to-transparent animate-wave" style={{ animationDelay: '1s' }} />
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl animate-pulse-slow" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }} />
       </div>
-
-      {/* Conteúdo */}
+      
       <div className="relative z-10 w-full max-w-md">
         {/* Botão Voltar */}
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-neutral-400 hover:text-neutral-200 mb-6 transition-colors duration-200 group"
+          className="inline-flex items-center gap-2 text-neutral-400 hover:text-neutral-200 transition-colors duration-200 mb-6 group"
         >
           <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" />
-          <span className="text-sm font-medium">Voltar ao site</span>
+          <span className="text-sm font-medium">Voltar ao início</span>
         </Link>
 
-        {/* Card de Login */}
-        <Card className={`relative overflow-hidden transition-all duration-500 ease-in-out ${isTransitioning ? 'opacity-0 scale-90 translate-x-[-30px] rotate-[-2deg]' : 'opacity-100 scale-100 translate-x-0 rotate-0'}`}>
-          {/* Efeito espelho/glassmorphism */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/5 to-transparent pointer-events-none rounded-2xl" />
-          <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,rgba(255,255,255,0.08)_50%,transparent_100%)] pointer-events-none opacity-60 rounded-2xl" />
-          
-          <div className="relative z-10">
-            <CardHeader className="space-y-1 text-center">
-              <CardTitle className="text-3xl font-bold text-white mb-2">
-                Bem-vindo de volta
-              </CardTitle>
-              <CardDescription className="text-neutral-400">
-                Entre com suas credenciais para acessar sua conta
-              </CardDescription>
-            </CardHeader>
+        <Card className="bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl border border-neutral-800/50 shadow-2xl">
+          <CardHeader className="space-y-1 text-center">
+            <CardTitle className="text-3xl font-bold text-white mb-2">
+              Entrar
+            </CardTitle>
+            <CardDescription className="text-neutral-400">
+              Faça login para continuar
+            </CardDescription>
+          </CardHeader>
 
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Campo Email */}
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    Email
-                  </Label>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Campo Email */}
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center gap-2 text-neutral-300">
+                  <Mail className="h-4 w-4" />
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full"
+                  disabled={loading}
+                />
+              </div>
+
+              {/* Campo Senha */}
+              <div className="space-y-2">
+                <Label htmlFor="password" className="flex items-center gap-2 text-neutral-300">
+                  <Lock className="h-4 w-4" />
+                  Senha
+                </Label>
+                <div className="relative">
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full"
+                    className="w-full pr-10"
+                    disabled={loading}
                   />
-                </div>
-
-                {/* Campo Senha */}
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="flex items-center gap-2">
-                    <Lock className="h-4 w-4" />
-                    Senha
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="w-full pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-200 transition-colors duration-200"
-                      aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Esqueceu a senha */}
-                <div className="flex items-center justify-end">
-                  <Link
-                    href="/esqueci-senha"
-                    className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors duration-200 underline-offset-4 hover:underline"
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-200 transition-colors"
                   >
-                    Esqueceu sua senha?
-                  </Link>
-                </div>
-
-                {/* Botão Entrar */}
-                <Button
-                  type="submit"
-                  variant="default"
-                  className="w-full bg-white/10 hover:bg-white/15 text-white border-white/20 hover:border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  Entrar
-                </Button>
-              </form>
-            </CardContent>
-
-            <CardFooter className="flex flex-col space-y-4">
-              <div className="relative w-full">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-white/10" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 px-2 text-neutral-500">
-                    Ou continue com
-                  </span>
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
                 </div>
               </div>
 
-              {/* Botões de login social */}
-              <div className="grid grid-cols-2 gap-3 w-full">
-                <button
-                  type="button"
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-white/5 backdrop-blur-sm px-4 py-2.5 text-sm font-medium text-neutral-300 hover:text-white hover:bg-white/15 hover:backdrop-blur-md focus:bg-white/15 focus:text-white disabled:pointer-events-none disabled:opacity-40 disabled:cursor-not-allowed border border-white/10 hover:border-white/30 focus:border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 transition-all duration-300 shadow-sm hover:shadow-md"
-                  style={{
-                    backgroundColor: "#ffffff",
-                    borderColor: "#dadce0",
-                    color: "#3c4043",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#f8f9fa"
-                    e.currentTarget.style.borderColor = "#dadce0"
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#ffffff"
-                    e.currentTarget.style.borderColor = "#dadce0"
-                  }}
-                >
-                  <svg className="w-5 h-5" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                  Google
-                </button>
-                <button
-                  type="button"
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-white/5 backdrop-blur-sm px-4 py-2.5 text-sm font-medium text-neutral-300 hover:text-white hover:bg-white/15 hover:backdrop-blur-md focus:bg-white/15 focus:text-white disabled:pointer-events-none disabled:opacity-40 disabled:cursor-not-allowed border border-white/10 hover:border-white/30 focus:border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 transition-all duration-300 shadow-sm hover:shadow-md"
-                  style={{
-                    backgroundColor: "#1877F2",
-                    borderColor: "#1877F2",
-                    color: "#ffffff",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#166FE5"
-                    e.currentTarget.style.borderColor = "#166FE5"
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#1877F2"
-                    e.currentTarget.style.borderColor = "#1877F2"
-                  }}
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                  </svg>
-                  Facebook
-                </button>
-              </div>
+              {/* Botão Entrar */}
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full group relative overflow-hidden bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/50 hover:scale-[1.02]"
+              >
+                {/* Efeito de brilho animado no hover */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                
+                {/* Conteúdo do botão */}
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Entrando...
+                    </>
+                  ) : (
+                    <>
+                      Entrar
+                      <Lock className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    </>
+                  )}
+                </span>
+              </Button>
+            </form>
 
-              {/* Link para cadastro */}
-              <p className="text-center text-sm text-neutral-400">
-                Não tem uma conta?{" "}
-                <Link
-                  href="/cadastro"
-                  onClick={handleCadastroClick}
-                  className="text-white hover:text-neutral-200 font-medium underline-offset-4 hover:underline transition-all duration-300 relative group"
-                >
-                  <span className="relative z-10">Cadastre-se</span>
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-500 group-hover:w-full transition-all duration-300 ease-out"></span>
-                </Link>
-              </p>
-            </CardFooter>
-          </div>
+            {/* Divisor */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-neutral-700" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-neutral-900 px-2 text-neutral-400">Ou continue com</span>
+              </div>
+            </div>
+
+            {/* Botão Google */}
+            <Button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="w-full group relative overflow-hidden bg-white hover:bg-white text-neutral-900 border-2 border-neutral-300 hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 hover:scale-[1.02] font-medium"
+            >
+              {/* Efeito de brilho animado no hover */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+              
+              <div className="relative flex items-center justify-center gap-2">
+                <svg className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  />
+                </svg>
+                <span className="text-neutral-900 group-hover:text-blue-600 transition-colors duration-300 font-semibold">
+                  Continuar com Google
+                </span>
+              </div>
+            </Button>
+          </CardContent>
+
+          <CardFooter className="flex flex-col space-y-4">
+            <div className="text-sm text-center text-neutral-400">
+              Não tem uma conta?{" "}
+              <Link
+                href="/cadastro"
+                onClick={handleCadastroClick}
+                className="text-orange-400 hover:text-orange-300 font-medium underline underline-offset-4 transition-colors"
+              >
+                Criar conta
+              </Link>
+            </div>
+          </CardFooter>
         </Card>
       </div>
     </div>

@@ -118,23 +118,46 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
             <Button
-              variant="default"
-              className="rounded-md bg-neutral-100 text-neutral-900 font-medium hover:bg-neutral-200 transition-colors duration-200 px-5 sm:px-6 py-2 text-sm sm:text-base shadow-sm hover:shadow-md w-full sm:w-auto"
+              onClick={() => router.push('/produtos')}
+              className="group relative overflow-hidden rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold transition-all duration-300 px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base shadow-lg hover:shadow-xl hover:shadow-orange-500/50 hover:scale-105 w-full sm:w-auto"
             >
-              Explorar
+              {/* Efeito de brilho animado */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+              
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                <svg className="w-5 h-5 group-hover:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Explorar Produtos
+                <svg className="w-4 h-4 group-hover:translate-y-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
             </Button>
 
             <Button
+              onClick={() => {
+                const sobreSection = document.getElementById('sobre-section')
+                sobreSection?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }}
               variant="outline"
-              className="rounded-md border border-neutral-700 text-neutral-200 font-medium hover:bg-neutral-800 hover:text-white transition-colors duration-200 px-5 sm:px-6 py-2 text-sm sm:text-base shadow-sm hover:shadow-md w-full sm:w-auto"
+              className="group relative overflow-hidden rounded-lg border-2 border-neutral-700 hover:border-orange-500/50 bg-neutral-900/50 hover:bg-neutral-800/80 text-neutral-200 hover:text-white font-semibold transition-all duration-300 px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base shadow-lg hover:shadow-xl hover:shadow-orange-500/20 hover:scale-105 w-full sm:w-auto backdrop-blur-sm"
             >
-              Saiba mais
+              {/* Efeito de brilho animado */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+              
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                <svg className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Sobre Nós
+              </span>
             </Button>
           </div>
         </div>
 
         {/* Carrossel de Produtos */}
-        <div className="w-full">
+        <div id="produtos-section" className="w-full scroll-mt-20">
           <div className="text-center mb-8 sm:mb-10 md:mb-12 px-4">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-800 mb-2 sm:mb-3 tracking-tight drop-shadow-sm">
               Nossos Produtos
@@ -175,7 +198,7 @@ export default function Home() {
         )}
 
         {/* Seção Quem Somos */}
-        <div className="w-full max-w-5xl mx-auto mb-12 sm:mb-16 md:mb-20 px-4">
+        <div id="sobre-section" className="w-full max-w-5xl mx-auto mb-12 sm:mb-16 md:mb-20 px-4 scroll-mt-20">
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl border border-neutral-800/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] p-8 sm:p-10 md:p-12">
             {/* Efeito espelho/glassmorphism */}
             <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/5 to-transparent pointer-events-none rounded-2xl" />

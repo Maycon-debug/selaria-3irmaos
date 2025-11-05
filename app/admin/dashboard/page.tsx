@@ -28,6 +28,7 @@ export default function AdminDashboard() {
   const { products, loading, error } = useProducts();
   const [searchTerm, setSearchTerm] = useState('');
   const [user, setUser] = useState<any>(null);
+  const [productsState, setProductsState] = useState(products);
 
   useEffect(() => {
     // Verificar autenticação
@@ -54,10 +55,21 @@ export default function AdminDashboard() {
     });
   };
 
+  // Atualizar produtos quando hook atualizar
+  useEffect(() => {
+    setProductsState(products);
+  }, [products]);
+
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Tem certeza que deseja deletar "${name}"?`)) {
       return;
     }
+
+    // Salvar produto que será deletado para rollback em caso de erro
+    const productToDelete = productsState.find((p) => p.id === id);
+    
+    // Atualização otimista: remover produto do estado imediatamente
+    setProductsState((prev) => prev.filter((p) => p.id !== id));
 
     try {
       const token = localStorage.getItem('admin_token');
@@ -77,9 +89,21 @@ export default function AdminDashboard() {
         description: `${name} foi removido com sucesso`,
       });
 
-      // Recarregar página
-      window.location.reload();
+      // Recarregar dados do servidor para garantir sincronização
+      // Isso atualiza o hook useProducts que vai atualizar productsState via useEffect
+      const refreshRes = await fetch('/api/products');
+      if (refreshRes.ok) {
+        const refreshedProducts = await refreshRes.json();
+        setProductsState(refreshedProducts);
+      }
     } catch (error) {
+      // Rollback: restaurar produto em caso de erro
+      if (productToDelete) {
+        setProductsState((prev) => [...prev, productToDelete].sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        ));
+      }
+      
       toast({
         title: 'Erro',
         description: 'Não foi possível deletar o produto',
@@ -87,18 +111,45 @@ export default function AdminDashboard() {
     }
   };
 
-  const filteredProducts = products.filter((product) =>
+  const filteredProducts = productsState.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Estatísticas
+  // Função auxiliar para converter preço para número
+  // Prisma retorna Decimal como string ou number
+  const parsePriceToNumber = (price: any): number => {
+    if (price === null || price === undefined) {
+      return 0;
+    }
+    
+    // Se já é número, retorna direto
+    if (typeof price === 'number') {
+      return price;
+    }
+    
+    // Se é string, pode ser Decimal do Prisma ou string formatada
+    if (typeof price === 'string') {
+      // Se já está formatado como "R$ 1.899,00", remove formatação
+      if (price.includes('R$') || price.includes(',')) {
+        const cleaned = price.replace(/[R$\s.]/g, '').replace(',', '.');
+        return parseFloat(cleaned) || 0;
+      }
+      // Se é Decimal do Prisma (ex: "1899.00")
+      return parseFloat(price) || 0;
+    }
+    
+    return 0;
+  };
+
+  // Estatísticas calculadas dinamicamente
   const stats = {
-    totalProducts: products.length,
-    totalStock: products.reduce((sum, p) => sum + p.stock, 0),
-    lowStock: products.filter((p) => p.stock < 10).length,
-    totalValue: products.reduce((sum, p) => {
-      const price = typeof p.price === 'string' ? parseFloat(p.price.replace(/[R$\s.]/g, '').replace(',', '.')) : p.price;
-      return sum + price * p.stock;
+    totalProducts: productsState.length,
+    totalStock: productsState.reduce((sum, p) => sum + (p.stock || 0), 0),
+    lowStock: productsState.filter((p) => (p.stock || 0) < 10).length,
+    totalValue: productsState.reduce((sum, p) => {
+      const price = parsePriceToNumber(p.price);
+      const stock = p.stock || 0;
+      return sum + (price * stock);
     }, 0),
   };
 
@@ -271,9 +322,10 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody className="divide-y divide-neutral-700/50">
                   {filteredProducts.map((product) => {
-                    const price = typeof product.price === 'string' 
-                      ? product.price 
-                      : formatPrice(product.price);
+                    // Converter preço para formato de exibição
+                    const priceNum = parsePriceToNumber(product.price);
+                    const price = formatPrice(priceNum);
+                    const originalPriceNum = product.originalPrice ? parsePriceToNumber(product.originalPrice) : null;
                     
                     return (
                       <tr key={product.id} className="hover:bg-neutral-800/30 transition-colors">
@@ -298,11 +350,9 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4">
                           <p className="text-white font-medium">{price}</p>
-                          {product.originalPrice && (
+                          {originalPriceNum && (
                             <p className="text-sm text-neutral-500 line-through">
-                              {typeof product.originalPrice === 'string' 
-                                ? product.originalPrice 
-                                : formatPrice(product.originalPrice)}
+                              {formatPrice(originalPriceNum)}
                             </p>
                           )}
                         </td>
