@@ -4,235 +4,21 @@ import { use } from "react"
 import Link from "next/link"
 import { ArrowLeft, ShoppingCart } from "lucide-react"
 import { Button } from "@/src/components/ui/button"
+import { useProducts } from "@/src/hooks/use-products"
+import { formatPrice } from "@/src/lib/product-utils"
 
-// Função para obter TODOS os produtos do site (carrossel + grid)
-const getAllProducts = () => {
-  return [
-    // Produtos do carrossel
-    {
-      id: "1",
-      name: "Sela Vaquejada Premium",
-      price: "R$ 1.899,00",
-      originalPrice: undefined,
-      image: "/images/products/carousel/sela01.jpeg",
-      description: "Sela de vaquejada artesanal com couro legítimo de primeira qualidade. Design ergonômico para máximo conforto e segurança durante as competições. Perfeita para atletas profissionais e amadores.",
-    },
-    {
-      id: "2",
-      name: "Peitoral e Cia",
-      price: "R$ 1.499,00",
-      originalPrice: undefined,
-      image: "/images/products/carousel/sela02.jpeg",
-      description: "Peitoral completo para vaquejada com acabamento em couro legítimo. Conjunto completo com todas as peças necessárias para montaria profissional. Resistente e durável para uso intensivo.",
-    },
-    {
-      id: "3",
-      name: "Espora Profissional",
-      price: "R$ 349,00",
-      originalPrice: undefined,
-      image: "/images/hero/espora01.jpeg",
-      description: "Espora de alta qualidade para vaquejada, fabricada com materiais premium. Design ergonômico e seguro, proporcionando controle preciso durante as competições. Disponível em vários tamanhos.",
-    },
-    {
-      id: "4",
-      name: "Cabeçada Vaquejada",
-      price: "R$ 599,00",
-      originalPrice: undefined,
-      image: "/images/products/grid/cabeçada01.jpeg",
-      description: "Cabeçada profissional para vaquejada em couro nobre. Acabamento impecável e design tradicional. Perfeita para controle e direcionamento do cavalo durante as competições.",
-    },
-    {
-      id: "5",
-      name: "Cabresto Premium",
-      price: "R$ 449,00",
-      originalPrice: undefined,
-      image: "/images/products/grid/cabresto01.jpeg",
-      description: "Cabresto de couro legítimo para vaquejada. Resistente e confortável para o cavalo. Design clássico com detalhes artesanais. Essencial para o manejo adequado do animal.",
-    },
-    {
-      id: "6",
-      name: "Luva para Cavalo",
-      price: "R$ 199,00",
-      originalPrice: undefined,
-      image: "/images/products/grid/luvaCavalo01.jpeg",
-      description: "Luva especializada para proteção e cuidado do cavalo. Confeccionada em material de alta qualidade, oferece proteção e conforto durante o treinamento e competições.",
-    },
-    {
-      id: "7",
-      name: "Capacete Vaquejada",
-      price: "R$ 399,00",
-      originalPrice: undefined,
-      image: "/images/products/grid/capacete01.jpg",
-      description: "Capacete de segurança profissional para vaquejada. Certificado e aprovado para competições. Design moderno com ventilação adequada e sistema de ajuste seguro.",
-    },
-    {
-      id: "8",
-      name: "Rédea Premium",
-      price: "R$ 299,00",
-      originalPrice: undefined,
-      image: "/images/products/carousel/sela03.jpeg",
-      description: "Rédea de couro legítimo para vaquejada. Acabamento artesanal e durabilidade excepcional. Controle preciso e conforto nas mãos. Disponível em várias cores e estilos.",
-    },
-    // Produtos do grid
-    {
-      id: "sela-1",
-      name: "Sela Vaquejada Premium",
-      price: "R$ 1.899,00",
-      originalPrice: "R$ 2.299,00",
-      image: "/images/products/carousel/sela04.jpeg",
-      description: "Sela artesanal com couro legítimo de primeira qualidade",
-    },
-    {
-      id: "peitoral-1",
-      name: "Peitoral e Cia Completo",
-      price: "R$ 1.499,00",
-      originalPrice: undefined,
-      image: "/images/products/carousel/sela05.jpeg",
-      description: "Conjunto completo de peitoral para montaria profissional",
-    },
-    {
-      id: "espora-1",
-      name: "Espora Profissional",
-      price: "R$ 349,00",
-      originalPrice: undefined,
-      image: "/images/hero/espora02.jpeg",
-      description: "Espora de alta qualidade para controle preciso",
-    },
-    {
-      id: "cabecada-1",
-      name: "Cabeçada Vaquejada",
-      price: "R$ 599,00",
-      originalPrice: undefined,
-      image: "/images/products/grid/cabeçada01.jpeg",
-      description: "Cabeçada profissional em couro nobre",
-    },
-    {
-      id: "cabresto-1",
-      name: "Cabresto Premium",
-      price: "R$ 449,00",
-      originalPrice: undefined,
-      image: "/images/products/grid/cabresto01.jpeg",
-      description: "Cabresto de couro legítimo resistente",
-    },
-    {
-      id: "luva-1",
-      name: "Luva para Cavalo",
-      price: "R$ 199,00",
-      originalPrice: undefined,
-      image: "/images/products/grid/luvaCavalo01.jpeg",
-      description: "Luva especializada para proteção e cuidado",
-    },
-    {
-      id: "capacete-1",
-      name: "Capacete Vaquejada",
-      price: "R$ 399,00",
-      originalPrice: undefined,
-      image: "/images/products/grid/capacete01.jpg",
-      description: "Capacete de segurança certificado",
-    },
-    {
-      id: "redea-1",
-      name: "Rédea Premium",
-      price: "R$ 299,00",
-      originalPrice: undefined,
-      image: "/images/products/carousel/sela06.jpeg",
-      description: "Rédea de couro legítimo com acabamento artesanal",
-    },
-    {
-      id: "arreio-1",
-      name: "Arreio Vaquejada Artesanal",
-      price: "R$ 899,00",
-      originalPrice: undefined,
-      image: "/images/products/carousel/sela07.jpeg",
-      description: "Arreio artesanal com acabamento impecável",
-    },
-    {
-      id: "bota-1",
-      name: "Bota Vaquejada Clássica",
-      price: "R$ 649,00",
-      originalPrice: undefined,
-      image: "/images/products/grid/bota01.jpeg",
-      description: "Bota resistente e elegante",
-    },
-    {
-      id: "sela-2",
-      name: "Sela Vaquejada Esportiva",
-      price: "R$ 2.199,00",
-      originalPrice: undefined,
-      image: "/images/products/carousel/sela08.jpeg",
-      description: "Sela com tecnologia avançada para alta performance",
-    },
-    {
-      id: "bota-2",
-      name: "Bota Vaquejada Premium",
-      price: "R$ 799,00",
-      originalPrice: "R$ 999,00",
-      image: "/images/products/grid/bota02.jpeg",
-      description: "Bota de couro legítimo premium",
-    },
-    {
-      id: "bota-3",
-      name: "Bota Vaquejada Esportiva",
-      price: "R$ 749,00",
-      originalPrice: undefined,
-      image: "/images/products/grid/bota03.jpeg",
-      description: "Bota desenvolvida para competições",
-    },
-    {
-      id: "sela-3",
-      name: "Sela Vaquejada Artesanal",
-      price: "R$ 2.499,00",
-      originalPrice: undefined,
-      image: "/images/products/carousel/sela09.jpeg",
-      description: "Sela única com detalhes personalizados",
-    },
-    {
-      id: "bota-4",
-      name: "Bota Vaquejada Tradicional",
-      price: "R$ 549,00",
-      originalPrice: undefined,
-      image: "/images/products/grid/bota04.jpeg",
-      description: "Bota tradicional para vaquejada",
-    },
-    {
-      id: "sela-4",
-      name: "Sela Vaquejada Deluxe",
-      price: "R$ 2.799,00",
-      originalPrice: undefined,
-      image: "/images/products/carousel/sela10.jpeg",
-      description: "Sela premium com acabamento exclusivo",
-    },
-    {
-      id: "sela-5",
-      name: "Sela Vaquejada Clássica",
-      price: "R$ 1.299,00",
-      originalPrice: undefined,
-      image: "/images/products/carousel/sela11.jpeg",
-      description: "Sela tradicional com acabamento impecável",
-    },
-    {
-      id: "sela-6",
-      name: "Sela Vaquejada Exclusiva",
-      price: "R$ 2.599,00",
-      originalPrice: undefined,
-      image: "/images/products/carousel/sela13.jpeg",
-      description: "Sela exclusiva com design único",
-    },
-  ]
-}
-
-// Mapeamento de categorias para termos de busca
-const categoriaParaTermo: Record<string, string> = {
-  selas: "sela",
-  "peitoral-e-cia": "peitoral",
-  "espora-profissional": "espora",
-  cabecada: "cabeçada",
-  cabresto: "cabresto",
-  "luva-para-cavalo": "luva",
-  capacete: "capacete",
-  redea: "rédea",
-  arreios: "arreio",
-  botas: "bota",
+// Mapeamento de categorias da URL para categorias do banco
+const categoriaParaCategoria: Record<string, string> = {
+  selas: "Selas",
+  "peitoral-e-cia": "Equipamentos",
+  "espora-profissional": "Equipamentos",
+  cabecada: "Equipamentos",
+  cabresto: "Equipamentos",
+  "luva-para-cavalo": "Equipamentos",
+  capacete: "Segurança",
+  redea: "Equipamentos",
+  arreios: "Arreios",
+  botas: "Botas",
 }
 
 // Nomes das categorias para exibição
@@ -255,17 +41,10 @@ interface PageProps {
 
 export default function ProdutoCategoriaPage({ params }: PageProps) {
   const { categoria } = use(params)
-
-  // Obter todos os produtos
-  const allProducts = getAllProducts()
-
-  // Obter termo de busca baseado na categoria
-  const searchTerm = categoriaParaTermo[categoria] || categoria.toLowerCase()
-
-  // Filtrar produtos que contenham o termo no nome (case-insensitive)
-  const produtos = allProducts.filter((produto) =>
-    produto.name.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  
+  // Buscar produtos da categoria
+  const categoriaDB = categoriaParaCategoria[categoria] || categoria
+  const { products, loading, error } = useProducts({ category: categoriaDB })
 
   const nomeCategoria = nomesCategorias[categoria] || categoria
 
@@ -295,7 +74,7 @@ export default function ProdutoCategoriaPage({ params }: PageProps) {
               {nomeCategoria}
             </h1>
             <p className="text-neutral-600 text-sm sm:text-base">
-              {produtos.length} produto{produtos.length !== 1 ? "s" : ""} disponível{produtos.length !== 1 ? "is" : ""}
+              {loading ? "Carregando..." : `${products.length} produto${products.length !== 1 ? "s" : ""} disponível${products.length !== 1 ? "is" : ""}`}
             </p>
           </div>
           <Button
@@ -308,9 +87,20 @@ export default function ProdutoCategoriaPage({ params }: PageProps) {
 
         {/* Grid de Produtos */}
         <div className="max-w-7xl mx-auto">
-          {produtos.length > 0 ? (
+          {loading ? (
+            <div className="text-center py-20">
+              <p className="text-neutral-600 text-lg">Carregando produtos...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-20">
+              <p className="text-red-600 text-lg">Erro ao carregar produtos: {error}</p>
+              <Link href="/" className="text-orange-500 hover:text-orange-600 underline mt-4 inline-block">
+                Voltar ao início
+              </Link>
+            </div>
+          ) : products.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {produtos.map((produto) => (
+              {products.map((produto) => (
                 <div
                   key={produto.id}
                   className="group relative overflow-hidden rounded-2xl bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl border border-neutral-800/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] transition-all duration-300 hover:shadow-[0_12px_48px_0_rgba(0,0,0,0.6)] hover:scale-[1.02]"
@@ -351,11 +141,11 @@ export default function ProdutoCategoriaPage({ params }: PageProps) {
                       {/* Preço */}
                       <div className="flex items-baseline gap-2">
                         <span className="text-xl font-bold text-white">
-                          {produto.price}
+                          {formatPrice(produto.price)}
                         </span>
                         {produto.originalPrice && (
                           <span className="text-sm text-neutral-500 line-through">
-                            {produto.originalPrice}
+                            {formatPrice(produto.originalPrice)}
                           </span>
                         )}
                       </div>

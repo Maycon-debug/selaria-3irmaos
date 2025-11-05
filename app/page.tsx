@@ -7,10 +7,15 @@ import { ProductGrid } from "@/src/components/ui/product-grid"
 import { BrandsSection } from "@/src/components/ui/brands-section"
 import { Button } from "@/src/components/ui/button"
 import { WelcomeModal } from "@/src/components/ui/welcome-modal"
+import { useProducts } from "@/src/hooks/use-products"
+import { formatProductForCarousel, formatProductForGrid } from "@/src/lib/product-utils"
 
 export default function Home() {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false)
   const router = useRouter()
+  
+  // Buscar produtos da API
+  const { products, loading: productsLoading, error: productsError } = useProducts()
 
   useEffect(() => {
     // Verificar se o usuário já escolheu antes
@@ -139,211 +144,35 @@ export default function Home() {
             </p>
           </div>
           
-          <ProductCarousel
-            products={[
-              {
-                id: "1",
-                name: "Sela Vaquejada Premium",
-                description:
-                  "Sela de vaquejada artesanal com couro legítimo de primeira qualidade. Design ergonômico para máximo conforto e segurança durante as competições. Perfeita para atletas profissionais e amadores.",
-                image: "/images/products/carousel/sela01.jpeg",
-                price: "R$ 1.899,00",
-              },
-              {
-                id: "2",
-                name: "Peitoral e Cia",
-                description:
-                  "Peitoral completo para vaquejada com acabamento em couro legítimo. Conjunto completo com todas as peças necessárias para montaria profissional. Resistente e durável para uso intensivo.",
-                image: "/images/products/carousel/sela02.jpeg",
-                price: "R$ 1.499,00",
-              },
-              {
-                id: "3",
-                name: "Espora Profissional",
-                description:
-                  "Espora de alta qualidade para vaquejada, fabricada com materiais premium. Design ergonômico e seguro, proporcionando controle preciso durante as competições. Disponível em vários tamanhos.",
-                image: "/images/hero/espora01.jpeg",
-                price: "R$ 349,00",
-              },
-              {
-                id: "4",
-                name: "Cabeçada Vaquejada",
-                description:
-                  "Cabeçada profissional para vaquejada em couro nobre. Acabamento impecável e design tradicional. Perfeita para controle e direcionamento do cavalo durante as competições.",
-                image: "/images/products/grid/cabeçada01.jpeg",
-                price: "R$ 599,00",
-              },
-              {
-                id: "5",
-                name: "Cabresto Premium",
-                description:
-                  "Cabresto de couro legítimo para vaquejada. Resistente e confortável para o cavalo. Design clássico com detalhes artesanais. Essencial para o manejo adequado do animal.",
-                image: "/images/products/grid/cabresto01.jpeg",
-                price: "R$ 449,00",
-              },
-              {
-                id: "6",
-                name: "Luva para Cavalo",
-                description:
-                  "Luva especializada para proteção e cuidado do cavalo. Confeccionada em material de alta qualidade, oferece proteção e conforto durante o treinamento e competições.",
-                image: "/images/products/grid/luvaCavalo01.jpeg",
-                price: "R$ 199,00",
-              },
-              {
-                id: "7",
-                name: "Capacete Vaquejada",
-                description:
-                  "Capacete de segurança profissional para vaquejada. Certificado e aprovado para competições. Design moderno com ventilação adequada e sistema de ajuste seguro.",
-                image: "/images/products/grid/capacete01.jpg",
-                price: "R$ 399,00",
-              },
-              {
-                id: "8",
-                name: "Rédea Premium",
-                description:
-                  "Rédea de couro legítimo para vaquejada. Acabamento artesanal e durabilidade excepcional. Controle preciso e conforto nas mãos. Disponível em várias cores e estilos.",
-                image: "/images/products/carousel/sela03.jpeg",
-                price: "R$ 299,00",
-              },
-            ]}
-          />
+          {productsLoading ? (
+            <div className="text-center py-12">
+              <p className="text-neutral-600">Carregando produtos...</p>
+            </div>
+          ) : productsError ? (
+            <div className="text-center py-12">
+              <p className="text-red-600">Erro ao carregar produtos: {productsError}</p>
+            </div>
+          ) : (
+            <ProductCarousel
+              products={products.slice(0, 8).map(formatProductForCarousel)}
+            />
+          )}
         </div>
 
         {/* Grid de Produtos em Destaque */}
-        <ProductGrid
-          products={[
-            {
-              id: "sela-1",
-              name: "Sela Vaquejada Premium",
-              price: "R$ 1.899,00",
-              originalPrice: "R$ 2.299,00",
-              image: "/images/products/carousel/sela04.jpeg",
-              rating: 4.8,
-              category: "Selas",
-            },
-            {
-              id: "peitoral-1",
-              name: "Peitoral e Cia Completo",
-              price: "R$ 1.499,00",
-              image: "/images/products/carousel/sela05.jpeg",
-              rating: 4.9,
-              category: "Equipamentos",
-            },
-            {
-              id: "espora-1",
-              name: "Espora Profissional",
-              price: "R$ 349,00",
-              image: "/images/hero/espora02.jpeg",
-              rating: 4.7,
-              category: "Equipamentos",
-            },
-            {
-              id: "cabecada-1",
-              name: "Cabeçada Vaquejada",
-              price: "R$ 599,00",
-              image: "/images/products/grid/cabeçada01.jpeg",
-              rating: 4.8,
-              category: "Equipamentos",
-            },
-            {
-              id: "cabresto-1",
-              name: "Cabresto Premium",
-              price: "R$ 449,00",
-              image: "/images/products/grid/cabresto01.jpeg",
-              rating: 4.6,
-              category: "Equipamentos",
-            },
-            {
-              id: "luva-1",
-              name: "Luva para Cavalo",
-              price: "R$ 199,00",
-              image: "/images/products/grid/luvaCavalo01.jpeg",
-              rating: 4.5,
-              category: "Equipamentos",
-            },
-            {
-              id: "capacete-1",
-              name: "Capacete Vaquejada",
-              price: "R$ 399,00",
-              image: "/images/products/grid/capacete01.jpg",
-              rating: 4.9,
-              category: "Segurança",
-            },
-            {
-              id: "redea-1",
-              name: "Rédea Premium",
-              price: "R$ 299,00",
-              image: "/images/products/carousel/sela06.jpeg",
-              rating: 4.7,
-              category: "Equipamentos",
-            },
-            {
-              id: "arreio-1",
-              name: "Arreio Vaquejada Artesanal",
-              price: "R$ 899,00",
-              image: "/images/products/carousel/sela07.jpeg",
-              rating: 4.9,
-              category: "Arreios",
-            },
-            {
-              id: "bota-1",
-              name: "Bota Vaquejada Clássica",
-              price: "R$ 649,00",
-              image: "/images/products/grid/bota01.jpeg",
-              rating: 4.7,
-              category: "Botas",
-            },
-            {
-              id: "sela-2",
-              name: "Sela Vaquejada Esportiva",
-              price: "R$ 2.199,00",
-              image: "/images/products/carousel/sela08.jpeg",
-              rating: 4.6,
-              category: "Selas",
-            },
-            {
-              id: "bota-2",
-              name: "Bota Vaquejada Premium",
-              price: "R$ 799,00",
-              originalPrice: "R$ 999,00",
-              image: "/images/products/grid/bota02.jpeg",
-              rating: 4.8,
-              category: "Botas",
-            },
-            {
-              id: "bota-3",
-              name: "Bota Vaquejada Esportiva",
-              price: "R$ 749,00",
-              image: "/images/products/grid/bota03.jpeg",
-              rating: 4.7,
-              category: "Botas",
-            },
-            {
-              id: "sela-3",
-              name: "Sela Vaquejada Artesanal",
-              price: "R$ 2.499,00",
-              image: "/images/products/carousel/sela09.jpeg",
-              rating: 4.9,
-              category: "Selas",
-            },
-            {
-              id: "bota-4",
-              name: "Bota Vaquejada Tradicional",
-              price: "R$ 549,00",
-              image: "/images/products/grid/bota04.jpeg",
-              rating: 4.6,
-              category: "Botas",
-            },
-            {
-              id: "sela-4",
-              name: "Sela Vaquejada Deluxe",
-              price: "R$ 2.799,00",
-              image: "/images/products/carousel/sela10.jpeg",
-              rating: 5.0,
-              category: "Selas",
-            },
-          ]}
-        />
+        {productsLoading ? (
+          <div className="text-center py-12">
+            <p className="text-neutral-600">Carregando produtos...</p>
+          </div>
+        ) : productsError ? (
+          <div className="text-center py-12">
+            <p className="text-red-600">Erro ao carregar produtos: {productsError}</p>
+          </div>
+        ) : (
+          <ProductGrid
+            products={products.map(formatProductForGrid)}
+          />
+        )}
 
         {/* Seção Quem Somos */}
         <div className="w-full max-w-5xl mx-auto mb-12 sm:mb-16 md:mb-20 px-4">

@@ -1,0 +1,146 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String   // Hash bcrypt
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  carrinhoItems CarrinhoItem[]
+  favoritos     Favorito[]
+  pedidos       Pedido[]
+  orders        Order[]
+  
+  @@map("usuarios")
+}
+
+model Produto {
+  id            String   @id @default(cuid())
+  name          String
+  description   String
+  price         Decimal  @db.Decimal(10, 2)
+  originalPrice Decimal? @db.Decimal(10, 2)
+  category      String
+  rating        Float    @default(0)
+  image         String   // Imagem principal
+  images        ProdutoImagem[]
+  stock         Int      @default(0) // Estoque integrado ao produto
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  carrinhoItems CarrinhoItem[]
+  favoritos     Favorito[]
+  pedidoItems   PedidoItem[]
+  
+  @@map("produtos")
+}
+
+model ProdutoImagem {
+  id        String   @id @default(cuid())
+  url       String
+  productId String
+  produto   Produto  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@index([productId])
+  @@map("produtos_IMG")
+}
+
+model CarrinhoItem {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  quantity  Int      @default(1)
+  usuario   Usuario  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  produto   Produto  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, productId])
+  @@index([userId])
+  @@map("Carrinho_item")
+}
+
+model Favorito {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  usuario   Usuario  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  produto   Produto  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, productId])
+  @@index([userId])
+  @@map("favoritos")
+}
+
+model Pedido {
+  id          String      @id @default(cuid())
+  userId      String
+  status      OrderStatus @default(PENDING)
+  total       Decimal     @db.Decimal(10, 2)
+  paymentId   String?
+  items       PedidoItem[]
+  shippingAddress Json    // Endereço de entrega como JSON
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  usuario     Usuario     @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([status])
+  @@map("pedidos")
+}
+
+model PedidoItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal  @db.Decimal(10, 2)
+  pedido    Pedido   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  produto   Produto  @relation(fields: [productId], references: [id])
+  
+  @@unique([orderId, productId])
+  @@index([orderId])
+  @@map("ordem_item")
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  userId      String
+  status      OrderStatus @default(PENDING)
+  total       Decimal     @db.Decimal(10, 2)
+  paymentId   String?
+  shippingAddress Json    // Endereço de entrega como JSON
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  usuario     Usuario     @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([status])
+  @@map("order")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}

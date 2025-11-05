@@ -39,3 +39,9 @@ next-env.d.ts
 # Cache
 .cache/
 turbo/
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+/src/generated/prisma

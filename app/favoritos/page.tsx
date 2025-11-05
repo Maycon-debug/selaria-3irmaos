@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils"
 import { AddToCartModal } from "@/src/components/ui/add-to-cart-modal"
 import { useCart } from "@/src/hooks/use-cart"
 import { useToast } from "@/src/components/ui/toast"
+import { useProducts } from "@/src/hooks/use-products"
+import { formatProductForGrid, formatPrice } from "@/src/lib/product-utils"
 
 interface Product {
   id: string
@@ -25,10 +27,13 @@ export default function FavoritosPage() {
   const router = useRouter()
   const { addToCart } = useCart()
   const { toast } = useToast()
-  const [favoriteProducts, setFavoriteProducts] = React.useState<Product[]>([])
+  const [favoriteIds, setFavoriteIds] = React.useState<string[]>([])
   const [hoveredProduct, setHoveredProduct] = React.useState<string | null>(null)
   const [modalOpen, setModalOpen] = React.useState(false)
   const [addedProduct, setAddedProduct] = React.useState<Product | null>(null)
+
+  // Buscar todos os produtos da API
+  const { products: allProducts, loading: productsLoading } = useProducts()
 
   // Carregar favoritos do localStorage
   React.useEffect(() => {
@@ -38,10 +43,7 @@ export default function FavoritosPage() {
         if (saved) {
           try {
             const productIds = JSON.parse(saved)
-            // Buscar produtos completos (aqui você pode buscar de uma API ou usar dados mock)
-            const allProducts = getAllProducts()
-            const favorites = allProducts.filter((p) => productIds.includes(p.id))
-            setFavoriteProducts(favorites)
+            setFavoriteIds(productIds)
           } catch (error) {
             console.error("Erro ao carregar favoritos:", error)
           }
@@ -50,24 +52,23 @@ export default function FavoritosPage() {
     }
 
     loadFavorites()
-    // Recarregar quando a página receber foco (caso favoritos sejam adicionados em outra aba)
     window.addEventListener("focus", loadFavorites)
     return () => window.removeEventListener("focus", loadFavorites)
   }, [])
 
+  // Filtrar produtos favoritos
+  const favoriteProducts = React.useMemo(() => {
+    if (!allProducts.length || !favoriteIds.length) return []
+    return allProducts
+      .filter((p) => favoriteIds.includes(p.id))
+      .map(formatProductForGrid)
+  }, [allProducts, favoriteIds])
+
   const removeFavorite = (productId: string) => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("favorites")
-      if (saved) {
-        try {
-          const productIds = JSON.parse(saved)
-          const updated = productIds.filter((id: string) => id !== productId)
-          localStorage.setItem("favorites", JSON.stringify(updated))
-          setFavoriteProducts((prev) => prev.filter((p) => p.id !== productId))
-        } catch (error) {
-          console.error("Erro ao remover favorito:", error)
-        }
-      }
+      const updated = favoriteIds.filter((id: string) => id !== productId)
+      setFavoriteIds(updated)
+      localStorage.setItem("favorites", JSON.stringify(updated))
     }
   }
 
@@ -75,7 +76,7 @@ export default function FavoritosPage() {
     e.preventDefault()
     e.stopPropagation()
     
-    // Converter preço de string para número
+    // Converter preço de string formatada para número
     const priceStr = product.price.replace("R$", "").trim()
     const price = parseFloat(priceStr.replace(/\./g, "").replace(",", "."))
     
@@ -100,95 +101,14 @@ export default function FavoritosPage() {
   }
 
   const handleContinueShopping = () => {
-    // Produto já está no carrinho, apenas fecha o modal
     setModalOpen(false)
     setAddedProduct(null)
   }
 
   const handleGoToCart = () => {
-    // Produto já está no carrinho, navega para a página do carrinho
     setModalOpen(false)
     setAddedProduct(null)
     router.push("/carrinho")
-  }
-
-  // Função para obter todos os produtos (mesmos produtos da página inicial)
-  const getAllProducts = (): Product[] => {
-    return [
-      {
-        id: "sela-1",
-        name: "Sela Vaquejada Premium",
-        description: "Sela artesanal de couro legítimo, design ergonômico para máximo conforto e segurança.",
-        image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop",
-        price: "R$ 1.899,00",
-        originalPrice: "R$ 2.299,00",
-        rating: 4.8,
-        category: "Selas",
-      },
-      {
-        id: "peitoral-1",
-        name: "Peitoral e Cia Completo",
-        description: "Peitoral completo para vaquejada com acabamento em couro legítimo.",
-        image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop",
-        price: "R$ 1.499,00",
-        rating: 4.9,
-        category: "Equipamentos",
-      },
-      {
-        id: "espora-1",
-        name: "Espora Profissional",
-        description: "Espora de alta qualidade para vaquejada, fabricada com materiais premium.",
-        image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop",
-        price: "R$ 349,00",
-        rating: 4.7,
-        category: "Equipamentos",
-      },
-      {
-        id: "cabecada-1",
-        name: "Cabeçada Vaquejada",
-        description: "Cabeçada profissional para vaquejada em couro nobre.",
-        image: "https://images.unsplash.com/photo-1516726817505-f5ed825624d8?w=600&h=600&fit=crop",
-        price: "R$ 599,00",
-        rating: 4.8,
-        category: "Equipamentos",
-      },
-      {
-        id: "cabresto-1",
-        name: "Cabresto Premium",
-        description: "Cabresto de couro legítimo para vaquejada. Resistente e confortável.",
-        image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop",
-        price: "R$ 449,00",
-        rating: 4.6,
-        category: "Equipamentos",
-      },
-      {
-        id: "luva-1",
-        name: "Luva para Cavalo",
-        description: "Luva especializada para proteção e cuidado do cavalo.",
-        image: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=600&h=600&fit=crop",
-        price: "R$ 199,00",
-        rating: 4.5,
-        category: "Equipamentos",
-      },
-      {
-        id: "capacete-1",
-        name: "Capacete Vaquejada",
-        description: "Capacete de segurança profissional para vaquejada.",
-        image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop",
-        price: "R$ 399,00",
-        rating: 4.9,
-        category: "Equipamentos",
-      },
-      {
-        id: "redea-1",
-        name: "Rédea Premium",
-        description: "Rédea de couro legítimo, acabamento artesanal e durabilidade excepcional.",
-        image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop",
-        price: "R$ 299,00",
-        rating: 4.7,
-        category: "Equipamentos",
-      },
-    ]
   }
 
   return (
@@ -226,7 +146,11 @@ export default function FavoritosPage() {
           </div>
 
           {/* Grid de Produtos Favoritos */}
-          {favoriteProducts.length === 0 ? (
+          {productsLoading ? (
+            <div className="text-center py-16 sm:py-24 md:py-32">
+              <p className="text-neutral-600 text-lg">Carregando favoritos...</p>
+            </div>
+          ) : favoriteProducts.length === 0 ? (
             <div className="text-center py-16 sm:py-24 md:py-32">
               <div className="inline-flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl border border-neutral-800/50 shadow-lg mb-6 sm:mb-8">
                 <Heart className="h-12 w-12 sm:h-16 sm:w-16 text-neutral-400" />
