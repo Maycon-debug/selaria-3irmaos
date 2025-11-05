@@ -17,10 +17,14 @@ import {
   ShoppingCart,
   Users,
   TrendingUp,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Tag,
+  Sparkles,
+  Zap
 } from 'lucide-react';
 import { Input } from '@/src/components/ui/input';
 import { formatPrice } from '@/src/lib/product-utils';
+import { PromocaoModal } from '@/src/components/admin/promocao-modal';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -29,6 +33,7 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [user, setUser] = useState<any>(null);
   const [productsState, setProductsState] = useState(products);
+  const [promocaoModalOpen, setPromocaoModalOpen] = useState(false);
 
   useEffect(() => {
     // Verificar autenticação
@@ -59,6 +64,65 @@ export default function AdminDashboard() {
   useEffect(() => {
     setProductsState(products);
   }, [products]);
+
+  // Função para aplicar promoção
+  const handleApplyPromotion = async (productId: string, discountPercent: number) => {
+    try {
+      const product = productsState.find(p => p.id === productId);
+      if (!product) {
+        throw new Error('Produto não encontrado');
+      }
+
+      const currentPrice = parsePriceToNumber(product.price);
+      const newPrice = currentPrice * (1 - discountPercent / 100);
+      const originalPrice = currentPrice; // Salvar preço original
+
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`/api/products/${productId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          price: newPrice,
+          originalPrice: originalPrice, // Preço original vira originalPrice
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Erro ao aplicar promoção');
+      }
+
+      // Atualizar estado local
+      setProductsState((prev) =>
+        prev.map((p) =>
+          p.id === productId
+            ? { ...p, price: newPrice, originalPrice: originalPrice }
+            : p
+        )
+      );
+
+      toast({
+        title: 'Promoção aplicada!',
+        description: `${product.name} agora tem ${discountPercent}% de desconto`,
+      });
+
+      // Recarregar produtos
+      const refreshRes = await fetch('/api/products');
+      if (refreshRes.ok) {
+        const refreshedProducts = await refreshRes.json();
+        setProductsState(refreshedProducts);
+      }
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: error instanceof Error ? error.message : 'Não foi possível aplicar a promoção',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Tem certeza que deseja deletar "${name}"?`)) {
@@ -229,12 +293,21 @@ export default function AdminDashboard() {
               <h1 className="text-3xl font-bold text-white mb-2">Gerenciamento de Produtos</h1>
               <p className="text-neutral-400">Gerencie seus produtos, estoque e vendas</p>
             </div>
-            <Link href="/admin/products/new">
-              <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white">
-                <Plus className="w-4 h-4 mr-2" />
-                Novo Produto
+            <div className="flex gap-3">
+              <Button
+                onClick={() => setPromocaoModalOpen(true)}
+                className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white"
+              >
+                <Tag className="w-4 h-4 mr-2" />
+                Criar Promoção
               </Button>
-            </Link>
+              <Link href="/admin/products/new">
+                <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Novo Produto
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {/* Stats Cards */}
@@ -326,35 +399,84 @@ export default function AdminDashboard() {
                     const priceNum = parsePriceToNumber(product.price);
                     const price = formatPrice(priceNum);
                     const originalPriceNum = product.originalPrice ? parsePriceToNumber(product.originalPrice) : null;
+                    const isOnPromotion = originalPriceNum !== null && originalPriceNum > priceNum;
+                    const discountPercent = isOnPromotion && originalPriceNum 
+                      ? Math.round(((originalPriceNum - priceNum) / originalPriceNum) * 100)
+                      : 0;
                     
                     return (
-                      <tr key={product.id} className="hover:bg-neutral-800/30 transition-colors">
+                      <tr 
+                        key={product.id} 
+                        className={`relative transition-all duration-300 ${
+                          isOnPromotion 
+                            ? 'bg-gradient-to-r from-green-500/5 via-green-500/10 to-green-500/5 border-l-4 border-green-500 hover:from-green-500/10 hover:via-green-500/15 hover:to-green-500/10' 
+                            : 'hover:bg-neutral-800/30'
+                        }`}
+                      >
+                        {/* Efeito de brilho para produtos em promoção */}
+                        {isOnPromotion && (
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-green-500/5 to-transparent pointer-events-none animate-pulse" />
+                        )}
+                        
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 rounded-lg overflow-hidden bg-neutral-700 flex items-center justify-center flex-shrink-0">
+                            <div className={`relative w-16 h-16 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 ${
+                              isOnPromotion ? 'ring-2 ring-green-500/50 ring-offset-2 ring-offset-neutral-900' : 'bg-neutral-700'
+                            }`}>
                               {product.image ? (
-                                <img 
-                                  src={product.image} 
-                                  alt={product.name}
-                                  className="w-full h-full object-cover"
-                                />
+                                <>
+                                  <img 
+                                    src={product.image} 
+                                    alt={product.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  {isOnPromotion && (
+                                    <div className="absolute inset-0 bg-green-500/20 pointer-events-none" />
+                                  )}
+                                </>
                               ) : (
                                 <ImageIcon className="w-8 h-8 text-neutral-500" />
                               )}
+                              {isOnPromotion && (
+                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-neutral-900">
+                                  <Zap className="w-3 h-3 text-white" />
+                                </div>
+                              )}
                             </div>
-                            <div>
-                              <p className="font-medium text-white">{product.name}</p>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <p className={`font-medium ${isOnPromotion ? 'text-white' : 'text-white'}`}>
+                                  {product.name}
+                                </p>
+                                {isOnPromotion && (
+                                  <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-bold flex items-center gap-1 shadow-lg shadow-green-500/30">
+                                    <Tag className="w-3 h-3" />
+                                    {discountPercent}% OFF
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-sm text-neutral-400 line-clamp-1">{product.description}</p>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-white font-medium">{price}</p>
-                          {originalPriceNum && (
-                            <p className="text-sm text-neutral-500 line-through">
-                              {formatPrice(originalPriceNum)}
+                          <div className="flex flex-col gap-1">
+                            <p className={`font-bold ${isOnPromotion ? 'text-green-400 text-lg' : 'text-white font-medium'}`}>
+                              {price}
                             </p>
-                          )}
+                            {originalPriceNum && (
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm text-neutral-500 line-through">
+                                  {formatPrice(originalPriceNum)}
+                                </p>
+                                {isOnPromotion && (
+                                  <span className="text-xs font-semibold text-green-400 bg-green-500/20 px-2 py-0.5 rounded">
+                                    Economia: {formatPrice(originalPriceNum - priceNum)}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4">
                           <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -368,9 +490,21 @@ export default function AdminDashboard() {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="px-3 py-1 rounded-full bg-neutral-700/50 text-neutral-300 text-xs">
-                            {product.category}
-                          </span>
+                          <div className="flex flex-col gap-2">
+                            <span className={`px-3 py-1 rounded-full text-xs inline-block w-fit ${
+                              isOnPromotion 
+                                ? 'bg-green-500/20 text-green-400 border border-green-500/30 font-semibold' 
+                                : 'bg-neutral-700/50 text-neutral-300'
+                            }`}>
+                              {product.category}
+                            </span>
+                            {isOnPromotion && (
+                              <span className="px-2 py-1 rounded-full bg-gradient-to-r from-green-500/30 to-green-600/30 text-green-300 text-xs font-medium border border-green-500/40 inline-block w-fit flex items-center gap-1">
+                                <Sparkles className="w-3 h-3" />
+                                EM PROMOÇÃO
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
@@ -402,6 +536,14 @@ export default function AdminDashboard() {
           )}
         </div>
       </main>
+
+      {/* Modal de Promoção */}
+      <PromocaoModal
+        isOpen={promocaoModalOpen}
+        onClose={() => setPromocaoModalOpen(false)}
+        products={productsState}
+        onApplyPromotion={handleApplyPromotion}
+      />
     </div>
   );
 }

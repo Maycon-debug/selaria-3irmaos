@@ -1,11 +1,15 @@
 "use client"
 
-import { use } from "react"
+import { use, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { ArrowLeft, ShoppingCart } from "lucide-react"
 import { Button } from "@/src/components/ui/button"
-import { useProducts } from "@/src/hooks/use-products"
+import { useProducts, Product } from "@/src/hooks/use-products"
 import { formatPrice } from "@/src/lib/product-utils"
+import { useCart } from "@/src/hooks/use-cart"
+import { useToast } from "@/src/components/ui/toast"
+import { AddToCartModal } from "@/src/components/ui/add-to-cart-modal"
 
 // Mapeamento de categorias da URL para categorias do banco
 const categoriaParaCategoria: Record<string, string> = {
@@ -41,12 +45,57 @@ interface PageProps {
 
 export default function ProdutoCategoriaPage({ params }: PageProps) {
   const { categoria } = use(params)
+  const router = useRouter()
+  const { addToCart } = useCart()
+  const { toast } = useToast()
+  
+  // Estados para o modal
+  const [modalOpen, setModalOpen] = useState(false)
+  const [addedProduct, setAddedProduct] = useState<Product | null>(null)
   
   // Buscar produtos da categoria
   const categoriaDB = categoriaParaCategoria[categoria] || categoria
   const { products, loading, error } = useProducts({ category: categoriaDB })
 
   const nomeCategoria = nomesCategorias[categoria] || categoria
+
+  // Função para adicionar ao carrinho
+  const handleAddToCart = (product: Product) => {
+    // Converter preço para número
+    const price = typeof product.price === 'number' 
+      ? product.price 
+      : parseFloat(String(product.price).replace(/[^\d,]/g, '').replace(',', '.')) || 0
+
+    // Adicionar ao carrinho
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: price,
+      image: product.image,
+    })
+
+    // Mostrar toast
+    toast({
+      title: "Produto adicionado!",
+      description: `${product.name} foi adicionado ao carrinho`,
+      duration: 3000,
+    })
+
+    // Abrir modal
+    setAddedProduct(product)
+    setModalOpen(true)
+  }
+
+  // Função para ir ao carrinho
+  const handleGoToCart = () => {
+    setModalOpen(false)
+    router.push("/carrinho")
+  }
+
+  // Função para continuar comprando
+  const handleContinueShopping = () => {
+    setModalOpen(false)
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-neutral-200 via-neutral-300 to-neutral-250 text-neutral-900 relative overflow-hidden">
@@ -60,29 +109,56 @@ export default function ProdutoCategoriaPage({ params }: PageProps) {
         <div className="max-w-7xl mx-auto mb-8">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-neutral-700 hover:text-neutral-900 transition-colors duration-200 group"
+            className="inline-flex items-center gap-3 px-4 py-2 rounded-lg bg-white/80 hover:bg-white/90 backdrop-blur-sm text-neutral-800 hover:text-neutral-900 transition-all duration-200 group shadow-sm hover:shadow-md border border-neutral-200/50 hover:border-neutral-300"
           >
-            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" />
-            <span className="text-sm font-medium">Voltar ao início</span>
+            <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform duration-200" />
+            <span className="text-base font-semibold">Voltar ao início</span>
           </Link>
         </div>
 
-        {/* Título e Botão Comprar Agora */}
-        <div className="max-w-7xl mx-auto mb-8 sm:mb-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-neutral-800 tracking-tight drop-shadow-sm mb-2">
-              {nomeCategoria}
-            </h1>
-            <p className="text-neutral-600 text-sm sm:text-base">
-              {loading ? "Carregando..." : `${products.length} produto${products.length !== 1 ? "s" : ""} disponível${products.length !== 1 ? "is" : ""}`}
-            </p>
+        {/* Título e Estatísticas */}
+        <div className="max-w-7xl mx-auto mb-8 sm:mb-12">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-neutral-800 tracking-tight drop-shadow-sm mb-2">
+                {nomeCategoria}
+              </h1>
+              <p className="text-neutral-600 text-sm sm:text-base">
+                {loading ? "Carregando..." : `${products.length} produto${products.length !== 1 ? "s" : ""} disponível${products.length !== 1 ? "is" : ""}`}
+              </p>
+            </div>
           </div>
-          <Button
-            className="bg-orange-500 hover:bg-orange-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 px-6 sm:px-8 py-3 text-base sm:text-lg font-semibold"
-          >
-            <ShoppingCart className="h-5 w-5 mr-2" />
-            Comprar Agora
-          </Button>
+          
+          {/* Cards de Estatísticas */}
+          {!loading && products.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 backdrop-blur-sm border border-orange-500/20 rounded-xl p-4 text-center">
+                <p className="text-2xl sm:text-3xl font-bold text-orange-600 mb-1">{products.length}</p>
+                <p className="text-xs sm:text-sm text-neutral-700 font-medium">Produtos</p>
+              </div>
+              <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 backdrop-blur-sm border border-blue-500/20 rounded-xl p-4 text-center">
+                <p className="text-2xl sm:text-3xl font-bold text-blue-600 mb-1">
+                  {products.filter(p => (p.stock || 0) > 0).length}
+                </p>
+                <p className="text-xs sm:text-sm text-neutral-700 font-medium">Em Estoque</p>
+              </div>
+              <div className="bg-gradient-to-br from-green-500/10 to-green-600/10 backdrop-blur-sm border border-green-500/20 rounded-xl p-4 text-center">
+                <p className="text-2xl sm:text-3xl font-bold text-green-600 mb-1">
+                  {products.filter(p => p.originalPrice).length}
+                </p>
+                <p className="text-xs sm:text-sm text-neutral-700 font-medium">Em Promoção</p>
+              </div>
+              <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/10 backdrop-blur-sm border border-purple-500/20 rounded-xl p-4 text-center">
+                <p className="text-xs sm:text-sm font-bold text-purple-600 mb-1">
+                  {products.length > 0 
+                    ? formatPrice(Math.min(...products.map(p => typeof p.price === 'number' ? p.price : parseFloat(String(p.price).replace(/[^\d,]/g, '').replace(',', '.')) || 0)))
+                    : 'R$ 0,00'
+                  }
+                </p>
+                <p className="text-xs sm:text-sm text-neutral-700 font-medium">Menor Preço</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Grid de Produtos */}
@@ -152,6 +228,7 @@ export default function ProdutoCategoriaPage({ params }: PageProps) {
 
                       {/* Botão Comprar Agora */}
                       <Button
+                        onClick={() => handleAddToCart(produto)}
                         className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
                       >
                         <ShoppingCart className="h-4 w-4 mr-2" />
@@ -172,6 +249,17 @@ export default function ProdutoCategoriaPage({ params }: PageProps) {
           )}
         </div>
       </section>
+
+      {/* Modal de Adicionar ao Carrinho */}
+      {addedProduct && (
+        <AddToCartModal
+          isOpen={modalOpen}
+          productName={addedProduct.name}
+          onContinue={handleContinueShopping}
+          onGoToCart={handleGoToCart}
+          onClose={() => setModalOpen(false)}
+        />
+      )}
     </main>
   )
 }

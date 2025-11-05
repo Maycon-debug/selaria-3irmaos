@@ -12,7 +12,7 @@ import {
 import { Button } from "@/src/components/ui/button"
 import { Sidebar } from "@/src/components/ui/sidebar"
 import Link from "next/link"
-import { User, ShoppingCart, Menu, LogOut, Settings, Heart, ChevronDown } from "lucide-react"
+import { User, ShoppingCart, Menu, LogOut, Settings, Heart, ChevronDown, Home } from "lucide-react"
 import { useCart } from "@/src/hooks/use-cart"
 import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
@@ -72,10 +72,11 @@ export function Header() {
         <div className="relative max-w-6xl mx-auto flex items-center justify-center py-3 px-2 sm:px-4 gap-2 sm:gap-6">
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="absolute left-2 sm:left-4 inline-flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-white/5 backdrop-blur-sm text-neutral-300 hover:text-white hover:bg-white/15 hover:backdrop-blur-md border border-white/10 hover:border-white/30 transition-all duration-300 shadow-sm hover:shadow-md"
+            className="absolute left-2 sm:left-4 inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-white/5 backdrop-blur-sm text-neutral-300 hover:text-white hover:bg-white/15 hover:backdrop-blur-md border border-white/10 hover:border-white/30 transition-all duration-300 shadow-sm hover:shadow-md"
             aria-label="Abrir menu"
           >
             <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="hidden sm:inline text-sm font-medium">Início</span>
           </button>
           <h1 className="text-sm sm:text-lg font-semibold tracking-tight text-white drop-shadow-lg">MeuSite</h1>
 
