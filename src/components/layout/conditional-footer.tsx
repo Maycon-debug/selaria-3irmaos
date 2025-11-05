@@ -1,12 +1,12 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { Header } from "@/src/components/layout/header"
+import { Footer } from "@/src/components/layout/footer"
 
-export function ConditionalHeader() {
+export function ConditionalFooter() {
   const pathname = usePathname()
   
-  // Não renderizar header nas páginas de login, cadastro e admin
+  // Não renderizar footer nas páginas de login, cadastro e admin
   if (
     pathname === "/login" || 
     pathname === "/cadastro" ||
@@ -15,6 +15,6 @@ export function ConditionalHeader() {
     return null
   }
   
-  return <Header />
+  return <Footer />
 }
 
