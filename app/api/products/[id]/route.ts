@@ -1,5 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/lib/prisma';
+import { verifyToken } from '../../auth/login/route';
+
+// Verificar autenticação admin
+async function verifyAdmin(request: NextRequest) {
+  const authHeader = request.headers.get('authorization');
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const token = authHeader.substring(7);
+  const payload = await verifyToken(token);
+
+  if (!payload || payload.role !== 'ADMIN') {
+    return null;
+  }
+
+  return payload;
+}
 
 // GET /api/products/[id] - Buscar produto específico
 export async function GET(
@@ -39,6 +58,14 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const admin = await verifyAdmin(request);
+    if (!admin) {
+      return NextResponse.json(
+        { error: 'Não autorizado' },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
     const body = await request.json();
 
@@ -91,6 +118,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const admin = await verifyAdmin(request);
+    if (!admin) {
+      return NextResponse.json(
+        { error: 'Não autorizado' },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
 
     // Verificar se produto existe
