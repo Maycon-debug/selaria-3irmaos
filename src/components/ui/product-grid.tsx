@@ -1,10 +1,13 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Heart, ShoppingCart, Star } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { AddToCartModal } from "./add-to-cart-modal"
+import { useCart } from "@/src/hooks/use-cart"
+import { useToast } from "./toast"
 
 interface Product {
   id: string
@@ -22,6 +25,9 @@ interface ProductGridProps {
 }
 
 export function ProductGrid({ products, className }: ProductGridProps) {
+  const router = useRouter()
+  const { addToCart } = useCart()
+  const { toast } = useToast()
   const [favorites, setFavorites] = React.useState<Set<string>>(new Set())
   const [hoveredProduct, setHoveredProduct] = React.useState<string | null>(null)
   const [modalOpen, setModalOpen] = React.useState(false)
@@ -78,46 +84,41 @@ export function ProductGrid({ products, className }: ProductGridProps) {
     e.preventDefault()
     e.stopPropagation()
     
-    // Adicionar ao carrinho no localStorage
-    if (typeof window !== "undefined") {
-      try {
-        const cart = JSON.parse(localStorage.getItem("cart") || "[]")
-        const existingItem = cart.find((item: any) => item.id === product.id)
-        
-        // Converter preço de string para número
-        const priceStr = product.price.replace("R$", "").trim()
-        const price = parseFloat(priceStr.replace(/\./g, "").replace(",", "."))
-        
-        if (existingItem) {
-          existingItem.quantity += 1
-        } else {
-          cart.push({
-            id: product.id,
-            name: product.name,
-            price: price,
-            image: product.image,
-            quantity: 1,
-          })
-        }
-        
-        localStorage.setItem("cart", JSON.stringify(cart))
-        setAddedProduct(product)
-        setModalOpen(true)
-      } catch (error) {
-        console.error("Erro ao adicionar ao carrinho:", error)
-      }
-    }
+    // Converter preço de string para número
+    const priceStr = product.price.replace("R$", "").trim()
+    const price = parseFloat(priceStr.replace(/\./g, "").replace(",", "."))
+    
+    // Adicionar ao carrinho usando o hook
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: price,
+      image: product.image,
+    })
+
+    // Mostrar notificação
+    toast({
+      title: "Item adicionado ao carrinho",
+      description: product.name,
+      duration: 3000,
+    })
+
+    // Mostrar modal
+    setAddedProduct(product)
+    setModalOpen(true)
   }
 
   const handleContinueShopping = () => {
+    // Produto já está no carrinho, apenas fecha o modal
     setModalOpen(false)
     setAddedProduct(null)
   }
 
   const handleGoToCart = () => {
+    // Produto já está no carrinho, navega para a página do carrinho
     setModalOpen(false)
     setAddedProduct(null)
-    window.location.href = "/carrinho"
+    router.push("/carrinho")
   }
 
   return (

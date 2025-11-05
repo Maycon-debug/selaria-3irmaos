@@ -1,10 +1,14 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Heart, ShoppingCart, Star, Trash2 } from "lucide-react"
 import { Button } from "@/src/components/ui/button"
 import { cn } from "@/lib/utils"
+import { AddToCartModal } from "@/src/components/ui/add-to-cart-modal"
+import { useCart } from "@/src/hooks/use-cart"
+import { useToast } from "@/src/components/ui/toast"
 
 interface Product {
   id: string
@@ -18,8 +22,13 @@ interface Product {
 }
 
 export default function FavoritosPage() {
+  const router = useRouter()
+  const { addToCart } = useCart()
+  const { toast } = useToast()
   const [favoriteProducts, setFavoriteProducts] = React.useState<Product[]>([])
   const [hoveredProduct, setHoveredProduct] = React.useState<string | null>(null)
+  const [modalOpen, setModalOpen] = React.useState(false)
+  const [addedProduct, setAddedProduct] = React.useState<Product | null>(null)
 
   // Carregar favoritos do localStorage
   React.useEffect(() => {
@@ -60,6 +69,47 @@ export default function FavoritosPage() {
         }
       }
     }
+  }
+
+  const handleAddToCart = (product: Product, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    // Converter preço de string para número
+    const priceStr = product.price.replace("R$", "").trim()
+    const price = parseFloat(priceStr.replace(/\./g, "").replace(",", "."))
+    
+    // Adicionar ao carrinho usando o hook
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: price,
+      image: product.image,
+    })
+
+    // Mostrar notificação
+    toast({
+      title: "Item adicionado ao carrinho",
+      description: product.name,
+      duration: 3000,
+    })
+
+    // Mostrar modal
+    setAddedProduct(product)
+    setModalOpen(true)
+  }
+
+  const handleContinueShopping = () => {
+    // Produto já está no carrinho, apenas fecha o modal
+    setModalOpen(false)
+    setAddedProduct(null)
+  }
+
+  const handleGoToCart = () => {
+    // Produto já está no carrinho, navega para a página do carrinho
+    setModalOpen(false)
+    setAddedProduct(null)
+    router.push("/carrinho")
   }
 
   // Função para obter todos os produtos (mesmos produtos da página inicial)
@@ -286,10 +336,7 @@ export default function FavoritosPage() {
                       {/* Botão de Adicionar ao Carrinho */}
                       <button
                         className="w-full mt-4 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-all duration-300 border border-white/20 hover:border-white/30 backdrop-blur-sm hover:shadow-lg flex items-center justify-center gap-2 group/btn"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          e.stopPropagation()
-                        }}
+                        onClick={(e) => handleAddToCart(product, e)}
                       >
                         <ShoppingCart className="h-4 w-4 group-hover/btn:scale-110 transition-transform" />
                         Adicionar ao Carrinho
@@ -303,6 +350,17 @@ export default function FavoritosPage() {
           )}
         </div>
       </section>
+
+      {/* Modal de Adicionar ao Carrinho */}
+      {addedProduct && (
+        <AddToCartModal
+          isOpen={modalOpen}
+          productName={addedProduct.name}
+          onContinue={handleContinueShopping}
+          onGoToCart={handleGoToCart}
+          onClose={handleContinueShopping}
+        />
+      )}
     </main>
   )
 }

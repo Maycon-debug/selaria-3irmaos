@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/src/components/ui/button"
 import { Input } from "@/src/components/ui/input"
@@ -19,11 +20,23 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [isTransitioning, setIsTransitioning] = useState(false)
+  const router = useRouter()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Lógica de login aqui
     console.log("Login:", { email, password })
+  }
+
+  const handleCadastroClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    setIsTransitioning(true)
+    
+    // Aguardar animação de saída antes de navegar
+    setTimeout(() => {
+      router.push("/cadastro")
+    }, 400)
   }
 
   return (
@@ -32,6 +45,17 @@ export default function LoginPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.03),transparent_50%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,rgba(255,255,255,0.02)_50%,transparent_100%)]" />
+      </div>
+
+      {/* Animação de Ondas Elegantes */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.05)_0%,transparent_50%)] animate-pulse-slow" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.03)_0%,transparent_50%)] animate-pulse-slow" style={{ animationDelay: '2s' }} />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(255,255,255,0.04)_0%,transparent_50%)] animate-pulse-slow" style={{ animationDelay: '4s' }} />
+        
+        {/* Ondas suaves */}
+        <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-orange-500/5 via-transparent to-transparent animate-wave" />
+        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-white/3 via-transparent to-transparent animate-wave" style={{ animationDelay: '1s' }} />
       </div>
 
       {/* Conteúdo */}
@@ -46,7 +70,7 @@ export default function LoginPage() {
         </Link>
 
         {/* Card de Login */}
-        <Card className="relative overflow-hidden">
+        <Card className={`relative overflow-hidden transition-all duration-500 ease-in-out ${isTransitioning ? 'opacity-0 scale-90 translate-x-[-30px] rotate-[-2deg]' : 'opacity-100 scale-100 translate-x-0 rotate-0'}`}>
           {/* Efeito espelho/glassmorphism */}
           <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/5 to-transparent pointer-events-none rounded-2xl" />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,rgba(255,255,255,0.08)_50%,transparent_100%)] pointer-events-none opacity-60 rounded-2xl" />
@@ -200,9 +224,11 @@ export default function LoginPage() {
                 Não tem uma conta?{" "}
                 <Link
                   href="/cadastro"
-                  className="text-white hover:text-neutral-200 font-medium underline-offset-4 hover:underline transition-colors duration-200"
+                  onClick={handleCadastroClick}
+                  className="text-white hover:text-neutral-200 font-medium underline-offset-4 hover:underline transition-all duration-300 relative group"
                 >
-                  Cadastre-se
+                  <span className="relative z-10">Cadastre-se</span>
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-500 group-hover:w-full transition-all duration-300 ease-out"></span>
                 </Link>
               </p>
             </CardFooter>

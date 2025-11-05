@@ -13,9 +13,11 @@ import { Button } from "@/src/components/ui/button"
 import { Sidebar } from "@/src/components/ui/sidebar"
 import Link from "next/link"
 import { User, ShoppingCart, Menu } from "lucide-react"
+import { useCart } from "@/src/hooks/use-cart"
 
 export function Header() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const { cartCount } = useCart()
 
   return (
     <>
@@ -219,9 +221,11 @@ export function Header() {
               aria-label="Carrinho de compras"
             >
               <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-white/90 text-neutral-900 text-[8px] sm:text-[10px] font-semibold flex items-center justify-center">
-                0
-              </span>
+              {cartCount > 0 && (
+                <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-orange-500 text-white text-[8px] sm:text-[10px] font-semibold flex items-center justify-center">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
             </Link>
             
             <Link href="/login" className="hidden sm:inline-block">
@@ -241,4 +245,3 @@ export function Header() {
     </>
   )
 }
-

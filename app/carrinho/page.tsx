@@ -7,6 +7,7 @@ import { Button } from "@/src/components/ui/button"
 import { Input } from "@/src/components/ui/input"
 import { Label } from "@/src/components/ui/label"
 import { cn } from "@/lib/utils"
+import { useCart } from "@/src/hooks/use-cart"
 
 interface CartItem {
   id: string
@@ -17,31 +18,21 @@ interface CartItem {
 }
 
 export default function CarrinhoPage() {
-  const [cartItems, setCartItems] = React.useState<CartItem[]>([
-    {
-      id: "sela-1",
-      name: "Sela Vaquejada Premium",
-      price: 1899.00,
-      image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop",
-      quantity: 1,
-    },
-  ])
+  const { cartItems, removeFromCart, updateQuantity } = useCart()
   const [cep, setCep] = React.useState("")
   const [cepLoading, setCepLoading] = React.useState(false)
   const [shippingPrice, setShippingPrice] = React.useState<number | null>(null)
 
-  const updateQuantity = (id: string, change: number) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + change) }
-          : item
-      )
-    )
+  const handleQuantityChange = (id: string, change: number) => {
+    const item = cartItems.find((i) => i.id === id)
+    if (item) {
+      const newQuantity = Math.max(1, item.quantity + change)
+      updateQuantity(id, newQuantity)
+    }
   }
 
-  const removeItem = (id: string) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id))
+  const handleRemoveItem = (id: string) => {
+    removeFromCart(id)
   }
 
   const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -177,7 +168,7 @@ export default function CarrinhoPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <button
-                              onClick={() => updateQuantity(item.id, -1)}
+                              onClick={() => handleQuantityChange(item.id, -1)}
                               className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/30 transition-all duration-200 flex items-center justify-center"
                             >
                               <Minus className="h-4 w-4" />
@@ -186,14 +177,14 @@ export default function CarrinhoPage() {
                               {item.quantity}
                             </span>
                             <button
-                              onClick={() => updateQuantity(item.id, 1)}
+                              onClick={() => handleQuantityChange(item.id, 1)}
                               className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/30 transition-all duration-200 flex items-center justify-center"
                             >
                               <Plus className="h-4 w-4" />
                             </button>
                           </div>
                           <button
-                            onClick={() => removeItem(item.id)}
+                            onClick={() => handleRemoveItem(item.id)}
                             className="px-4 py-2 rounded-lg bg-red-500/90 hover:bg-red-600 text-white text-sm font-medium transition-all duration-200 flex items-center gap-2"
                           >
                             <Trash2 className="h-4 w-4" />

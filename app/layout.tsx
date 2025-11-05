@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConditionalHeader } from "@/src/components/layout/conditional-header";
+import { Footer } from "@/src/components/layout/footer";
+import { CartProvider } from "@/src/hooks/use-cart";
+import { ToastProvider } from "@/src/components/ui/toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,10 +29,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
-        <ConditionalHeader />
-        {children}
+        <CartProvider>
+          <ToastProvider>
+            <ConditionalHeader />
+            <main className="flex-1">
+              {children}
+            </main>
+            <Footer />
+          </ToastProvider>
+        </CartProvider>
       </body>
     </html>
   );
