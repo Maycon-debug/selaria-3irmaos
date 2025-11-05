@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { ProductCarousel } from "@/src/components/ui/product-carousel"
 import { ProductGrid } from "@/src/components/ui/product-grid"
 import { BrandsSection } from "@/src/components/ui/brands-section"
@@ -56,60 +57,82 @@ export default function Home() {
       <section className="relative pt-20 sm:pt-24 md:pt-32 pb-12 sm:pb-16 md:pb-20 flex flex-col items-center px-2 sm:px-4 z-10">
         <div className="text-center mb-8 sm:mb-12 md:mb-16">
           <div className="relative inline-block px-4">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight drop-shadow-lg">
-              <span className="text-neutral-800">Bem-vindo </span>
-              <span className="text-neutral-800">Selaria </span>
-              <span className="relative inline-block mx-1">
-                {/* Sombra */}
-                <span 
-                  className="absolute inset-0 font-black text-4xl sm:text-5xl md:text-6xl lg:text-7xl select-none pointer-events-none"
-                  style={{
-                    fontFamily: "'Times New Roman', 'Georgia', serif",
-                    fontStyle: "italic",
-                    fontWeight: 900,
-                    transform: "translateY(3px) translateX(3px)",
-                    filter: "blur(2px)",
-                    color: "rgba(0, 0, 0, 0.3)",
-                  }}
-                >
-                  III
-                </span>
-                {/* Marca principal - cor sólida */}
-                <span 
-                  className="relative z-10 font-black text-4xl sm:text-5xl md:text-6xl lg:text-7xl select-none"
-                  style={{
-                    fontFamily: "'Times New Roman', 'Georgia', serif",
-                    fontStyle: "italic",
-                    fontWeight: 900,
-                    letterSpacing: "0.02em",
-                    color: "#404040",
-                    filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4))",
-                    transform: "perspective(600px) rotateX(-3deg)",
-                    transformStyle: "preserve-3d",
-                  }}
-                >
-                  III
-                </span>
-                {/* Reflexo espelhado */}
-                <span 
-                  className="absolute inset-0 font-black text-4xl sm:text-5xl md:text-6xl lg:text-7xl select-none pointer-events-none"
-                  style={{
-                    fontFamily: "'Times New Roman', 'Georgia', serif",
-                    fontStyle: "italic",
-                    fontWeight: 900,
-                    letterSpacing: "0.02em",
-                    transform: "scaleY(-1) translateY(-4px) perspective(600px) rotateX(3deg)",
-                    color: "rgba(64, 64, 64, 0.3)",
-                    filter: "blur(1.5px)",
-                    opacity: 0.4,
-                  }}
-                >
-                  III
-                </span>
-              </span>
-              <span className="text-neutral-800"> Irmãos</span>
-            </h1>
-            {/* Linha decorativa abaixo do título */}
+            {/* Container principal com logo e título - alinhados e mesmo tamanho */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-8">
+              {/* Logo sem reflexo */}
+              <div className="relative w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40">
+                <div className="relative w-full h-full pb-2 z-10">
+                  <Image
+                    src="/images/logo/vq-app-logo.png"
+                    alt="VAQ APP Logo"
+                    fill
+                    className="object-contain relative z-10"
+                    priority
+                    sizes="(max-width: 640px) 112px, (max-width: 768px) 128px, (max-width: 1024px) 144px, 160px"
+                  />
+                </div>
+              </div>
+              
+              {/* Título VAQ APP com efeito reflexo - mais espaço e reflexo próximo */}
+              <div className="relative flex flex-col items-center sm:items-start min-w-0">
+                {/* Texto original - com mais espaço */}
+                <div className="relative w-full pb-1">
+                  <h1 
+                    className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-wider drop-shadow-lg relative z-10 whitespace-nowrap"
+                    style={{
+                      fontFamily: 'var(--font-logo)',
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      fontWeight: 400,
+                      lineHeight: 0.9,
+                    }}
+                  >
+                    <span className="inline-block text-neutral-800 transform hover:scale-105 transition-transform duration-300">VAQ</span>
+                    <span className="inline-block ml-1.5 sm:ml-2 text-orange-500 transform hover:scale-105 transition-transform duration-300">APP</span>
+                  </h1>
+                </div>
+                
+                {/* Reflexo do texto - mais vivo com bordas muito arredondadas */}
+                <div className="relative w-full overflow-hidden" style={{ height: '30%', marginTop: '-2px', borderRadius: '0 0 40px 40px' }}>
+                  <div className="relative w-full h-full" style={{ transform: 'scaleY(-1)', filter: 'blur(2px)', borderRadius: '0 0 40px 40px' }}>
+                    <div className="relative w-full h-full flex items-start justify-center sm:justify-start">
+                      <h1 
+                        className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-wider opacity-30 whitespace-nowrap"
+                        style={{
+                          fontFamily: 'var(--font-logo)',
+                          letterSpacing: '0.08em',
+                          textTransform: 'uppercase',
+                          fontWeight: 400,
+                          lineHeight: 0.9,
+                          filter: 'blur(1px)',
+                        }}
+                      >
+                        <span className="inline-block text-neutral-800" style={{ textShadow: '0 0 4px rgba(0,0,0,0.08), 0 0 8px rgba(0,0,0,0.05)' }}>VAQ</span>
+                        <span className="inline-block ml-1.5 sm:ml-2 text-orange-500" style={{ textShadow: '0 0 4px rgba(249, 115, 22, 0.15), 0 0 8px rgba(249, 115, 22, 0.1)' }}>APP</span>
+                      </h1>
+                    </div>
+                  </div>
+                  {/* Gradiente suave com bordas muito arredondadas */}
+                  <div 
+                    className="absolute inset-0 pointer-events-none" 
+                    style={{ 
+                      backdropFilter: 'blur(1px)',
+                      borderRadius: '0 0 40px 40px',
+                      background: 'linear-gradient(to top, rgba(229, 229, 229, 0.8) 0%, rgba(229, 229, 229, 0.3) 30%, rgba(229, 229, 229, 0.1) 60%, transparent 100%)',
+                      maskImage: 'linear-gradient(to top, black 0%, black 60%, transparent 100%)',
+                      WebkitMaskImage: 'linear-gradient(to top, black 0%, black 60%, transparent 100%)',
+                    }} 
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {/* Subtítulo */}
+            <p className="text-neutral-700 text-lg sm:text-xl md:text-2xl font-medium mb-6 sm:mb-8 md:mb-10 px-4">
+              O aplicativo do Vaqueiro
+            </p>
+            
+            {/* Linha decorativa abaixo do subtítulo */}
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 sm:w-32 h-1 bg-gradient-to-r from-transparent via-neutral-600 to-transparent rounded-full opacity-60" />
           </div>
           <p className="text-neutral-700 mb-6 sm:mb-8 md:mb-10 text-base sm:text-lg px-4 mt-8">

@@ -166,7 +166,7 @@ export function Footer() {
         <div className="mt-12 pt-8 border-t border-white/10">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-neutral-500 text-sm text-center sm:text-left">
-              © {new Date().getFullYear()} Selaria III Irmãos. Todos os direitos reservados.
+              © {new Date().getFullYear()} VAQ APP. Todos os direitos reservados.
             </p>
             <div className="flex items-center gap-6 text-sm text-neutral-500">
               <Link href="/termos" className="hover:text-white transition-colors duration-200">

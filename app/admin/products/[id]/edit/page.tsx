@@ -38,6 +38,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     image: '',
   });
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [categories, setCategories] = useState<string[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
   useEffect(() => {
     // Verificar autenticação
@@ -77,6 +79,25 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     };
 
     loadProduct();
+
+    // Buscar categorias disponíveis
+    const loadCategories = async () => {
+      try {
+        const res = await fetch('/api/categories');
+        if (res.ok) {
+          const data = await res.json();
+          setCategories(data);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar categorias:', error);
+        // Categorias padrão em caso de erro
+        setCategories(['Selas', 'Equipamentos', 'Segurança', 'Botas', 'Arreios']);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    loadCategories();
   }, [router, resolvedParams.id, toast]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -229,14 +250,45 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
                 <div className="space-y-2">
                   <Label htmlFor="category" className="text-neutral-300">Categoria *</Label>
-                  <Input
-                    id="category"
-                    required
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="bg-neutral-800/50 border-neutral-700 text-white"
-                    placeholder="Ex: Selas, Equipamentos, Botas"
-                  />
+                  {loadingCategories ? (
+                    <div className="w-full rounded-lg border border-neutral-700 bg-neutral-800/50 px-3 py-2 text-sm text-neutral-400">
+                      Carregando categorias...
+                    </div>
+                  ) : (
+                    <select
+                      id="category"
+                      required
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      className={`w-full rounded-lg border-2 px-4 py-3 text-base font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:border-orange-500 disabled:cursor-not-allowed disabled:opacity-50 ${
+                        formData.category 
+                          ? 'border-orange-500 bg-neutral-950 text-white shadow-lg shadow-orange-500/20' 
+                          : 'border-neutral-500 bg-neutral-900 text-neutral-500'
+                      }`}
+                      style={{
+                        WebkitAppearance: 'none',
+                        MozAppearance: 'none',
+                        appearance: 'none',
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'right 1rem center',
+                        paddingRight: '2.5rem',
+                      }}
+                    >
+                      <option value="" disabled className="bg-neutral-950 text-neutral-500 font-normal">
+                        Selecione uma categoria
+                      </option>
+                      {categories.map((category) => (
+                        <option 
+                          key={category} 
+                          value={category} 
+                          className="bg-neutral-950 text-white font-bold py-2"
+                        >
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               </div>
 

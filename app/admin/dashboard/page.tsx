@@ -409,17 +409,12 @@ export default function AdminDashboard() {
                         key={product.id} 
                         className={`relative transition-all duration-300 ${
                           isOnPromotion 
-                            ? 'bg-gradient-to-r from-green-500/5 via-green-500/10 to-green-500/5 border-l-4 border-green-500 hover:from-green-500/10 hover:via-green-500/15 hover:to-green-500/10' 
+                            ? 'bg-gradient-to-r from-green-500/5 via-green-500/10 to-green-500/5 border-l-4 border-green-500 hover:from-green-500/10 hover:via-green-500/15 hover:to-green-500/10 before:content-[""] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-green-500/5 before:to-transparent before:pointer-events-none before:animate-pulse' 
                             : 'hover:bg-neutral-800/30'
                         }`}
                       >
-                        {/* Efeito de brilho para produtos em promoção */}
-                        {isOnPromotion && (
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-green-500/5 to-transparent pointer-events-none animate-pulse" />
-                        )}
-                        
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-4">
+                        <td className="px-6 py-4 relative">
+                          <div className="flex items-center gap-4 relative z-10">
                             <div className={`relative w-16 h-16 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 ${
                               isOnPromotion ? 'ring-2 ring-green-500/50 ring-offset-2 ring-offset-neutral-900' : 'bg-neutral-700'
                             }`}>

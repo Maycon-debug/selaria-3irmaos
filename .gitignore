@@ -48,3 +48,14 @@ docker-compose.override.yml
 
 # Arquivos ZIP de relatórios
 relatorios-projeto-*.zip
+
+# Relatórios e guias .md (exceto README.md)
+GUIA_*.md
+SOLUCAO_*.md
+VERIFICAR_*.md
+CORRIGIR_*.md
+COMO_*.md
+PROXIMOS_*.md
+CONFIGURAR_*.md
+CONFIGURACAO_*.md
+RELATORIO_*.md

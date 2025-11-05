@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Bebas_Neue, Racing_Sans_One } from "next/font/google";
 import "./globals.css";
 import { ConditionalHeader } from "@/src/components/layout/conditional-header";
 import { ConditionalFooter } from "@/src/components/layout/conditional-footer";
@@ -17,6 +17,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const bebasNeue = Bebas_Neue({
+  variable: "--font-bebas-neue",
+  weight: "400",
+  subsets: ["latin"],
+});
+
+const racingSansOne = Racing_Sans_One({
+  variable: "--font-racing-sans-one",
+  weight: "400",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: "MeuSite - Vaquejada",
   description: "Produtos de vaquejada de alta qualidade",
@@ -30,7 +42,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} ${bebasNeue.variable} ${racingSansOne.variable} antialiased flex flex-col min-h-screen`}
       >
         <SessionProvider>
           <CartProvider>

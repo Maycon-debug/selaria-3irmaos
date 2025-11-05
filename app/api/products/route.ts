@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     // Validação básica
     if (!name || !description || !price || !category || !image) {
       return NextResponse.json(
-        { error: 'Campos obrigatórios: name, description, price, category, image' },
+        { error: 'Campos obrigatórios: nome, descrição, preço, categoria, imagem' },
         { status: 400 }
       );
     }

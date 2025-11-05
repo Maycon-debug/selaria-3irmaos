@@ -150,10 +150,6 @@ export function ProductCarousel({ products, className }: ProductCarouselProps) {
                     <p className="text-neutral-200 text-sm sm:text-base md:text-lg leading-relaxed flex-1">
                       {product.description}
                     </p>
-                    <TextToSpeech 
-                      text={product.description}
-                      className="flex-shrink-0 mt-1"
-                    />
                   </div>
                   {product.price && (
                     <div className="pt-2 sm:pt-4">
@@ -162,10 +158,14 @@ export function ProductCarousel({ products, className }: ProductCarouselProps) {
                       </span>
                     </div>
                   )}
-                  <div className="pt-2">
+                  <div className="pt-2 flex items-center gap-3">
                     <button className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-all duration-200 border border-white/20 backdrop-blur-sm hover:shadow-lg shadow-md text-sm sm:text-base">
                       Ver Detalhes
                     </button>
+                    <TextToSpeech 
+                      text={product.description}
+                      className="flex-shrink-0"
+                    />
                   </div>
                 </div>
               </div>

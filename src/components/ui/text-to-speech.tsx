@@ -103,20 +103,20 @@ export function TextToSpeech({ text, className, buttonClassName }: TextToSpeechP
       <button
         onClick={handleToggle}
         className={cn(
-          "inline-flex items-center justify-center gap-2 h-9 w-9 rounded-lg bg-white/5 backdrop-blur-sm text-neutral-300 hover:text-white hover:bg-white/15 hover:backdrop-blur-md border border-white/10 hover:border-white/30 transition-all duration-300 shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900",
-          isPlaying && "bg-white/15 text-white border-white/30",
+          "inline-flex items-center justify-center gap-2 h-11 w-11 rounded-lg bg-green-500/10 backdrop-blur-sm text-green-400 hover:text-green-300 hover:bg-green-500/20 hover:backdrop-blur-md border-2 border-green-500/50 hover:border-green-500 transition-all duration-300 shadow-sm hover:shadow-md hover:shadow-green-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900",
+          isPlaying && "bg-green-500/20 text-green-300 border-green-500 shadow-md shadow-green-500/40",
           buttonClassName
         )}
         aria-label={isPlaying ? "Pausar leitura" : "Ouvir descrição"}
         title={isPlaying ? "Pausar leitura" : "Ouvir descrição do produto"}
       >
         {isPlaying ? (
-          <Pause className="h-4 w-4" />
+          <Pause className="h-5 w-5" />
         ) : (
-          <Play className="h-4 w-4" />
+          <Play className="h-5 w-5" />
         )}
       </button>
-      <span className="text-xs text-neutral-400 hidden lg:inline-flex items-center gap-1">
+      <span className="text-xs text-green-400 hidden lg:inline-flex items-center gap-1">
         <Volume2 className="h-3 w-3" />
         Ouvir
       </span>
