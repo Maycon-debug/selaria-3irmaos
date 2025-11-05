@@ -25,6 +25,9 @@ export function formatProductForCarousel(product: any) {
     description: product.description,
     image: product.image,
     price: formatPrice(product.price),
+    originalPrice: product.originalPrice ? formatPrice(product.originalPrice) : undefined,
+    category: product.category,
+    rating: product.rating,
   };
 }
 
@@ -32,11 +35,12 @@ export function formatProductForGrid(product: any) {
   return {
     id: product.id,
     name: product.name,
+    description: product.description, // Incluir descrição
     price: formatPrice(product.price),
     originalPrice: product.originalPrice ? formatPrice(product.originalPrice) : undefined,
     image: product.image,
     rating: product.rating,
-    category: extractCategoryFromName(product.name), // Usar primeira palavra do nome
+    category: product.category || extractCategoryFromName(product.name), // Usar categoria do produto ou extrair do nome
   };
 }
 

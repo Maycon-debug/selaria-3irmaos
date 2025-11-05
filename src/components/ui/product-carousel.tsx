@@ -16,9 +16,10 @@ interface Product {
 interface ProductCarouselProps {
   products: Product[]
   className?: string
+  onProductClick?: (product: Product) => void
 }
 
-export function ProductCarousel({ products, className }: ProductCarouselProps) {
+export function ProductCarousel({ products, className, onProductClick }: ProductCarouselProps) {
   const [currentIndex, setCurrentIndex] = React.useState(0)
   const [isHovering, setIsHovering] = React.useState<string | null>(null)
   const [isPaused, setIsPaused] = React.useState(false)
@@ -112,9 +113,10 @@ export function ProductCarousel({ products, className }: ProductCarouselProps) {
                   ref={(el) => {
                     imageRefs.current[product.id] = el
                   }}
-                  className="relative h-48 sm:h-64 md:h-full rounded-lg sm:rounded-xl overflow-hidden bg-neutral-950 border border-neutral-800/50 group cursor-zoom-in"
+                  className="relative h-48 sm:h-64 md:h-full rounded-lg sm:rounded-xl overflow-hidden bg-neutral-950 border border-neutral-800/50 group cursor-pointer"
                   onMouseMove={(e) => handleMouseMove(e, product.id)}
                   onMouseLeave={() => handleMouseLeave(product.id)}
+                  onClick={() => onProductClick?.(product)}
                 >
                   <div
                     className={cn(
@@ -137,7 +139,7 @@ export function ProductCarousel({ products, className }: ProductCarouselProps) {
                   <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                   {/* Indicador de zoom */}
                   <div className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-neutral-900/90 backdrop-blur-sm text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none border border-neutral-700/50 shadow-lg hidden sm:block">
-                    🔍 Mova o mouse para explorar
+                    🔍 Mova o mouse para explorar | Clique para ver detalhes
                   </div>
                 </div>
 

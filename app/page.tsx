@@ -5,14 +5,17 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { ProductCarousel } from "@/src/components/ui/product-carousel"
 import { ProductGrid } from "@/src/components/ui/product-grid"
+import { ProductModal } from "@/src/components/ui/product-modal"
 import { BrandsSection } from "@/src/components/ui/brands-section"
 import { Button } from "@/src/components/ui/button"
 import { WelcomeModal } from "@/src/components/ui/welcome-modal"
 import { useProducts } from "@/src/hooks/use-products"
-import { formatProductForCarousel, formatProductForGrid } from "@/src/lib/product-utils"
+import { formatProductForCarousel, formatProductForGrid, formatPrice } from "@/src/lib/product-utils"
 
 export default function Home() {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<any>(null)
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false)
   const router = useRouter()
   
   // Buscar produtos da API
@@ -44,6 +47,51 @@ export default function Home() {
     }
     setShowWelcomeModal(false)
     router.push("/login")
+  }
+
+  const handleProductClick = async (product: any) => {
+    // Se o produto já tem descrição, usar direto
+    if (product.description) {
+      setSelectedProduct({
+        ...product,
+        category: product.category,
+        rating: product.rating,
+      })
+      setIsProductModalOpen(true)
+    } else {
+      // Se não tem descrição, buscar do banco usando o ID
+      try {
+        const res = await fetch(`/api/products/${product.id}`)
+        if (res.ok) {
+          const fullProduct = await res.json()
+          setSelectedProduct({
+            id: fullProduct.id,
+            name: fullProduct.name,
+            description: fullProduct.description,
+            image: fullProduct.image,
+            price: formatProductForCarousel(fullProduct).price,
+            originalPrice: fullProduct.originalPrice ? formatPrice(fullProduct.originalPrice) : undefined,
+            category: fullProduct.category,
+            rating: fullProduct.rating,
+          })
+          setIsProductModalOpen(true)
+        }
+      } catch (error) {
+        console.error('Erro ao buscar produto:', error)
+      }
+    }
+  }
+
+  const handleCloseProductModal = () => {
+    setIsProductModalOpen(false)
+    setSelectedProduct(null)
+  }
+
+  const handleAddToCart = (product: any) => {
+    // Aqui você pode adicionar a lógica de adicionar ao carrinho
+    // Por enquanto, apenas fecha o modal
+    handleCloseProductModal()
+    // TODO: Implementar adicionar ao carrinho
   }
 
   return (
@@ -200,7 +248,8 @@ export default function Home() {
             </div>
           ) : (
             <ProductCarousel
-              products={products.slice(0, 8).map(formatProductForCarousel)}
+              products={products.map(formatProductForCarousel)}
+              onProductClick={handleProductClick}
             />
           )}
         </div>
@@ -217,6 +266,7 @@ export default function Home() {
         ) : (
           <ProductGrid
             products={products.map(formatProductForGrid)}
+            onProductClick={handleProductClick}
           />
         )}
 
@@ -320,6 +370,14 @@ export default function Home() {
       isOpen={showWelcomeModal}
       onClose={handleCloseModal}
       onLogin={handleLogin}
+    />
+
+    {/* Modal de Produto */}
+    <ProductModal
+      product={selectedProduct}
+      isOpen={isProductModalOpen}
+      onClose={handleCloseProductModal}
+      onAddToCart={handleAddToCart}
     />
     </>
   )

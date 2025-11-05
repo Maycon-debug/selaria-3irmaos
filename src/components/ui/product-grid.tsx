@@ -12,6 +12,7 @@ import { useToast } from "./toast"
 interface Product {
   id: string
   name: string
+  description?: string
   price: string
   originalPrice?: string
   image: string
@@ -22,9 +23,10 @@ interface Product {
 interface ProductGridProps {
   products: Product[]
   className?: string
+  onProductClick?: (product: Product) => void
 }
 
-export function ProductGrid({ products, className }: ProductGridProps) {
+export function ProductGrid({ products, className, onProductClick }: ProductGridProps) {
   const router = useRouter()
   const { addToCart } = useCart()
   const { toast } = useToast()
@@ -148,7 +150,10 @@ export function ProductGrid({ products, className }: ProductGridProps) {
                 
                 <div className="relative z-10">
                   {/* Imagem do Produto */}
-                  <div className="relative h-64 overflow-hidden bg-neutral-950">
+                  <div 
+                    className="relative h-64 overflow-hidden bg-neutral-950 cursor-pointer group/image"
+                    onClick={() => onProductClick?.(product)}
+                  >
                     <div
                       className={cn(
                         "absolute inset-0 transition-transform duration-700 ease-out",
@@ -163,9 +168,19 @@ export function ProductGrid({ products, className }: ProductGridProps) {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/80 via-transparent to-transparent" />
                     
+                    {/* Overlay de clique */}
+                    <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 transition-all duration-300 flex items-center justify-center">
+                      <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 text-white text-sm font-medium px-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20">
+                        Clique para ver detalhes
+                      </div>
+                    </div>
+                    
                     {/* Badge de favorito */}
                     <button
-                      onClick={(e) => toggleFavorite(product.id, e)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        toggleFavorite(product.id, e)
+                      }}
                       className={cn(
                         "absolute top-3 right-3 z-20 p-2 rounded-full backdrop-blur-sm transition-all duration-300",
                         favorites.has(product.id)
