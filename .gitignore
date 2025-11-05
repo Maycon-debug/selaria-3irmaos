@@ -45,3 +45,6 @@ turbo/
 docker-compose.override.yml
 
 /src/generated/prisma
+
+# Arquivos ZIP de relatórios
+relatorios-projeto-*.zip
