@@ -5,6 +5,7 @@ import { ConditionalHeader } from "@/src/components/layout/conditional-header";
 import { ConditionalFooter } from "@/src/components/layout/conditional-footer";
 import { CartProvider } from "@/src/hooks/use-cart";
 import { ToastProvider } from "@/src/components/ui/toast";
+import { ThemeProvider } from "@/src/hooks/use-theme";
 import SessionProvider from "@/src/components/providers/session-provider";
 import { PageTransition } from "@/src/components/layout/page-transition";
 import { NavigationTracker } from "@/src/components/layout/navigation-tracker";
@@ -46,19 +47,21 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${bebasNeue.variable} ${racingSansOne.variable} antialiased flex flex-col min-h-screen`}
       >
-        <SessionProvider>
-          <CartProvider>
-            <ToastProvider>
-              <NavigationTracker />
-              <PageTransition />
-              <ConditionalHeader />
-              <main className="flex-1">
-                {children}
-              </main>
-              <ConditionalFooter />
-            </ToastProvider>
-          </CartProvider>
-        </SessionProvider>
+        <ThemeProvider>
+          <SessionProvider>
+            <CartProvider>
+              <ToastProvider>
+                <NavigationTracker />
+                <PageTransition />
+                <ConditionalHeader />
+                <main className="flex-1">
+                  {children}
+                </main>
+                <ConditionalFooter />
+              </ToastProvider>
+            </CartProvider>
+          </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

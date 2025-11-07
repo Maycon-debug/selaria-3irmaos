@@ -11,6 +11,7 @@ import { WelcomeModal } from "@/src/components/ui/welcome-modal"
 import { useProducts } from "@/src/hooks/use-products"
 import { useCart } from "@/src/hooks/use-cart"
 import { useToast } from "@/src/components/ui/toast"
+import { useTheme } from "@/src/hooks/use-theme"
 import { formatProductForCarousel, formatProductForGrid, formatPrice } from "@/src/lib/product-utils"
 
 // Tipo para produto selecionado no modal (compatível com ProductModal)
@@ -45,6 +46,7 @@ export default function Home() {
   const router = useRouter()
   const { addToCart } = useCart()
   const { toast } = useToast()
+  const { theme } = useTheme()
   
   // Buscar produtos da API
   const { products, loading: productsLoading, error: productsError } = useProducts()
@@ -218,6 +220,15 @@ export default function Home() {
           }
         }
         
+        @keyframes color-shift-vaq-dark {
+          0%, 100% { 
+            color: rgb(245, 245, 245);
+          }
+          50% { 
+            color: rgb(212, 212, 216);
+          }
+        }
+        
         @keyframes pulse-glow {
           0%, 100% { 
             transform: scale(1);
@@ -228,10 +239,10 @@ export default function Home() {
         }
       `}} />
       
-      <main className="min-h-screen bg-gradient-to-br from-neutral-200 via-neutral-300 to-neutral-250 text-neutral-900 relative overflow-hidden">
+      <main className="min-h-screen bg-gradient-to-br from-neutral-200 via-neutral-300 to-neutral-250 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-950 text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-300">
       {/* Textura sutil de fundo */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808015_1px,transparent_1px),linear-gradient(to_bottom,#80808015_1px,transparent_1px)] bg-[size:24px_24px] opacity-40" />
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-neutral-400/10" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808015_1px,transparent_1px),linear-gradient(to_bottom,#80808015_1px,transparent_1px)] bg-[size:24px_24px] opacity-40 dark:opacity-20" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-neutral-400/10 dark:to-neutral-700/10" />
 
       {/* CONTEÚDO */}
       <section className="relative pt-20 sm:pt-24 md:pt-32 pb-12 sm:pb-16 md:pb-20 flex flex-col items-center px-2 sm:px-4 z-10">
@@ -270,12 +281,19 @@ export default function Home() {
                   >
                     {/* VAQ - Parte escura com efeito de brilho automático */}
                     <span className="inline-block relative overflow-hidden">
-                      <span className="relative z-10 text-neutral-800" style={{ animation: 'color-shift-vaq 4s ease-in-out infinite' }}>
+                      <span 
+                        className="relative z-10 text-neutral-800 dark:text-neutral-100" 
+                        style={{ 
+                          animation: theme === 'dark' 
+                            ? 'color-shift-vaq-dark 4s ease-in-out infinite' 
+                            : 'color-shift-vaq 4s ease-in-out infinite'
+                        }}
+                      >
                         VAQ
                       </span>
                       {/* Efeito de brilho deslizante automático - mais suave */}
                       <span 
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-neutral-400/40 to-transparent"
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-neutral-400/40 dark:via-neutral-500/40 to-transparent"
                         style={{ 
                           animation: 'shimmer 3s ease-in-out infinite',
                           transform: 'translateX(-100%)',
@@ -324,14 +342,14 @@ export default function Home() {
             </div>
             
             {/* Subtítulo */}
-            <p className="text-neutral-700 text-lg sm:text-xl md:text-2xl font-medium mb-6 sm:mb-8 md:mb-10 px-4">
+            <p className="text-neutral-700 dark:text-neutral-300 text-lg sm:text-xl md:text-2xl font-medium mb-6 sm:mb-8 md:mb-10 px-4">
               O aplicativo do Vaqueiro
             </p>
             
             {/* Linha decorativa abaixo do subtítulo */}
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 sm:w-32 h-1 bg-gradient-to-r from-transparent via-neutral-600 to-transparent rounded-full opacity-60" />
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 sm:w-32 h-1 bg-gradient-to-r from-transparent via-neutral-600 dark:via-neutral-400 to-transparent rounded-full opacity-60" />
           </div>
-          <p className="text-neutral-700 mb-6 sm:mb-8 md:mb-10 text-base sm:text-lg px-4 mt-8">
+          <p className="text-neutral-700 dark:text-neutral-300 mb-6 sm:mb-8 md:mb-10 text-base sm:text-lg px-4 mt-8">
             Qualidade e tradição em equipamentos de vaquejada
           </p>
 
@@ -374,10 +392,10 @@ export default function Home() {
         {/* Carrossel de Produtos */}
         <div id="produtos-section" className="w-full scroll-mt-20">
           <div className="text-center mb-8 sm:mb-10 md:mb-12 px-4">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-800 mb-2 sm:mb-3 tracking-tight drop-shadow-sm">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-800 dark:text-neutral-100 mb-2 sm:mb-3 tracking-tight drop-shadow-sm">
               Nossos Produtos
             </h2>
-            <p className="text-neutral-700 text-sm sm:text-base md:text-lg">
+            <p className="text-neutral-700 dark:text-neutral-300 text-sm sm:text-base md:text-lg">
               Passe o cursor sobre as imagens para ver os detalhes
             </p>
           </div>

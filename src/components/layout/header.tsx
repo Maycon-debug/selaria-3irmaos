@@ -13,11 +13,12 @@ import { Button } from "@/src/components/ui/button"
 import { Input } from "@/src/components/ui/input"
 import { Sidebar } from "@/src/components/ui/sidebar"
 import Link from "next/link"
-import { User, ShoppingCart, Menu, LogOut, Settings, Heart, ChevronDown, Home, Search } from "lucide-react"
+import { User, ShoppingCart, Menu, LogOut, Settings, Heart, ChevronDown, Home, Search, Moon, Sun } from "lucide-react"
 import { useCart } from "@/src/hooks/use-cart"
 import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/src/components/ui/toast"
+import { useTheme } from "@/src/hooks/use-theme"
 
 export function Header() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -27,6 +28,7 @@ export function Header() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { toast } = useToast()
+  const { theme, toggleTheme } = useTheme()
   const userMenuRef = useRef<HTMLDivElement>(null)
 
   // Fechar menu ao clicar fora
@@ -323,8 +325,21 @@ export function Header() {
             </div>
           </div>
 
-          {/* Lado Direito: Usuário e Carrinho */}
+          {/* Lado Direito: Tema, Usuário e Carrinho */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            {/* Botão de Toggle de Tema */}
+            <button
+              onClick={toggleTheme}
+              className="inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-white/5 backdrop-blur-sm text-neutral-300 hover:text-white hover:bg-white/15 hover:backdrop-blur-md border border-white/10 hover:border-white/30 transition-all duration-300 shadow-sm hover:shadow-md relative group"
+              aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
+            >
+              {theme === "dark" ? (
+                <Sun className="h-4 w-4 sm:h-5 sm:w-5 group-hover:rotate-180 transition-transform duration-500" />
+              ) : (
+                <Moon className="h-4 w-4 sm:h-5 sm:w-5 group-hover:-rotate-12 transition-transform duration-500" />
+              )}
+            </button>
+            
             {/* Menu do Usuário Logado */}
             {status === "authenticated" && session?.user ? (
               <div className="relative" ref={userMenuRef}>
