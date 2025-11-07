@@ -6,6 +6,8 @@ import { ConditionalFooter } from "@/src/components/layout/conditional-footer";
 import { CartProvider } from "@/src/hooks/use-cart";
 import { ToastProvider } from "@/src/components/ui/toast";
 import SessionProvider from "@/src/components/providers/session-provider";
+import { PageTransition } from "@/src/components/layout/page-transition";
+import { NavigationTracker } from "@/src/components/layout/navigation-tracker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,6 +49,8 @@ export default function RootLayout({
         <SessionProvider>
           <CartProvider>
             <ToastProvider>
+              <NavigationTracker />
+              <PageTransition />
               <ConditionalHeader />
               <main className="flex-1">
                 {children}

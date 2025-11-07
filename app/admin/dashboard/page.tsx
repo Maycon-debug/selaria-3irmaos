@@ -20,16 +20,19 @@ import {
   Image as ImageIcon,
   Tag,
   Sparkles,
-  Zap
+  Zap,
+  MessageSquare
 } from 'lucide-react';
 import { Input } from '@/src/components/ui/input';
 import { formatPrice } from '@/src/lib/product-utils';
+import { useMessageCount } from '@/src/hooks/use-message-count';
 import { PromocaoModal } from '@/src/components/admin/promocao-modal';
 
 export default function AdminDashboard() {
   const router = useRouter();
   const { toast } = useToast();
   const { products, loading, error } = useProducts();
+  const { count: messageCount } = useMessageCount();
   const [searchTerm, setSearchTerm] = useState('');
   const [user, setUser] = useState<any>(null);
   const [productsState, setProductsState] = useState(products);
@@ -251,6 +254,18 @@ export default function AdminDashboard() {
             >
               <Package className="w-5 h-5" />
               <span className="font-medium">Produtos</span>
+            </Link>
+            <Link
+              href="/admin/messages"
+              className="relative flex items-center gap-3 px-4 py-3 rounded-lg text-neutral-400 hover:bg-neutral-800/50 hover:text-white transition-all"
+            >
+              <MessageSquare className="w-5 h-5" />
+              <span>Mensagens</span>
+              {messageCount.pending > 0 && (
+                <span className="absolute top-2 right-2 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold animate-pulse shadow-lg shadow-red-500/50">
+                  {messageCount.pending > 99 ? '99+' : messageCount.pending}
+                </span>
+              )}
             </Link>
             <Link
               href="/"

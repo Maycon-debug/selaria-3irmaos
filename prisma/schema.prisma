@@ -189,3 +189,26 @@ enum OrderStatus {
   DELIVERED
   CANCELLED
 }
+
+enum ContactStatus {
+  PENDING
+  READ
+  REPLIED
+  ARCHIVED
+}
+
+model MensagemContato {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String        @db.Text
+  status    ContactStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  
+  @@index([status])
+  @@index([createdAt])
+  @@map("mensagens_contato")
+}

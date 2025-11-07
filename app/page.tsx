@@ -12,48 +12,86 @@ import { WelcomeModal } from "@/src/components/ui/welcome-modal"
 import { useProducts } from "@/src/hooks/use-products"
 import { formatProductForCarousel, formatProductForGrid, formatPrice } from "@/src/lib/product-utils"
 
+// Tipo para produto selecionado no modal (compatível com ProductModal)
+interface SelectedProduct {
+  id: string
+  name: string
+  description: string
+  image: string
+  price?: string
+  originalPrice?: string
+  category?: string
+  rating?: number
+}
+
+// Tipo para produtos dos componentes (description opcional)
+type ProductForComponent = {
+  id: string
+  name: string
+  description?: string
+  image: string
+  price?: string
+  originalPrice?: string
+  category?: string
+  rating?: number
+}
+
 export default function Home() {
+  // Estado inicial sempre false para evitar erro de hidratação
   const [showWelcomeModal, setShowWelcomeModal] = useState(false)
-  const [selectedProduct, setSelectedProduct] = useState<any>(null)
+  const [selectedProduct, setSelectedProduct] = useState<SelectedProduct | null>(null)
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
   const router = useRouter()
   
   // Buscar produtos da API
   const { products, loading: productsLoading, error: productsError } = useProducts()
 
+  // Verificar sessionStorage apenas no cliente após montagem (evita erro de hidratação)
   useEffect(() => {
-    // Verificar se o usuário já escolheu antes
-    if (typeof window !== "undefined") {
-      const hasChosen = localStorage.getItem("userChoice")
-      if (!hasChosen) {
-        // Mostrar modal apenas se não houver escolha salva
+    // Verificar se já viu o modal nesta sessão
+    const hasSeenModal = sessionStorage.getItem("welcomeModalShown")
+    
+    // Verificar se já navegou pelo site (mudou de página)
+    const hasNavigated = sessionStorage.getItem("hasNavigated")
+    
+    // Mostrar modal apenas se:
+    // 1. Não viu o modal ainda nesta sessão
+    // 2. E não navegou pelo site ainda (primeira vez na home)
+    if (!hasSeenModal && !hasNavigated) {
+      // Usar requestAnimationFrame para garantir execução após hidratação
+      requestAnimationFrame(() => {
         setShowWelcomeModal(true)
-      }
+      })
     }
   }, [])
 
   const handleCloseModal = () => {
     setShowWelcomeModal(false)
-    // Salvar escolha de visitante
+    // Marcar que o modal foi visto nesta sessão
     if (typeof window !== "undefined") {
-      localStorage.setItem("userChoice", "visitor")
+      sessionStorage.setItem("welcomeModalShown", "true")
     }
   }
 
   const handleLogin = () => {
-    // Salvar escolha de login
-    if (typeof window !== "undefined") {
-      localStorage.setItem("userChoice", "login")
-    }
     setShowWelcomeModal(false)
+    // Marcar que o modal foi visto
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("welcomeModalShown", "true")
+    }
     router.push("/login")
   }
 
-  const handleProductClick = async (product: any) => {
+  const handleProductClick = async (product: ProductForComponent) => {
     // Se o produto já tem descrição, usar direto
     if (product.description) {
       setSelectedProduct({
-        ...product,
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        image: product.image,
+        price: product.price,
+        originalPrice: product.originalPrice,
         category: product.category,
         rating: product.rating,
       })
@@ -87,9 +125,10 @@ export default function Home() {
     setSelectedProduct(null)
   }
 
-  const handleAddToCart = (product: any) => {
+  const handleAddToCart = (product: SelectedProduct) => {
     // Aqui você pode adicionar a lógica de adicionar ao carrinho
     // Por enquanto, apenas fecha o modal
+    console.log('Adicionar ao carrinho:', product)
     handleCloseProductModal()
     // TODO: Implementar adicionar ao carrinho
   }

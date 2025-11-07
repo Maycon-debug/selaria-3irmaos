@@ -48,7 +48,12 @@ export function useProducts(options: UseProductsOptions = {}) {
 
         const url = `/api/products${params.toString() ? `?${params.toString()}` : ''}`;
         
-        const res = await fetch(url);
+        // Delay mínimo para melhorar UX (especialmente em conexões rápidas)
+        // Garante que o usuário veja o estado de loading mesmo em conexões muito rápidas
+        const [res] = await Promise.all([
+          fetch(url),
+          new Promise(resolve => setTimeout(resolve, 200)) // 200ms mínimo
+        ]);
         
         if (!res.ok) {
           throw new Error(`Erro ao buscar produtos: ${res.statusText}`);
