@@ -7,9 +7,10 @@ import { ProductCarousel } from "@/src/components/ui/product-carousel"
 import { ProductGrid } from "@/src/components/ui/product-grid"
 import { ProductModal } from "@/src/components/ui/product-modal"
 import { BrandsSection } from "@/src/components/ui/brands-section"
-import { Button } from "@/src/components/ui/button"
 import { WelcomeModal } from "@/src/components/ui/welcome-modal"
 import { useProducts } from "@/src/hooks/use-products"
+import { useCart } from "@/src/hooks/use-cart"
+import { useToast } from "@/src/components/ui/toast"
 import { formatProductForCarousel, formatProductForGrid, formatPrice } from "@/src/lib/product-utils"
 
 // Tipo para produto selecionado no modal (compatível com ProductModal)
@@ -42,6 +43,8 @@ export default function Home() {
   const [selectedProduct, setSelectedProduct] = useState<SelectedProduct | null>(null)
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
   const router = useRouter()
+  const { addToCart } = useCart()
+  const { toast } = useToast()
   
   // Buscar produtos da API
   const { products, loading: productsLoading, error: productsError } = useProducts()
@@ -126,15 +129,105 @@ export default function Home() {
   }
 
   const handleAddToCart = (product: SelectedProduct) => {
-    // Aqui você pode adicionar a lógica de adicionar ao carrinho
-    // Por enquanto, apenas fecha o modal
-    console.log('Adicionar ao carrinho:', product)
+    // Converter preço de string formatada para número
+    const price = product.price 
+      ? parseFloat(product.price.replace(/[^\d,]/g, '').replace(',', '.')) 
+      : 0
+    
+    if (price <= 0) {
+      toast({
+        title: "Erro",
+        description: "Preço inválido para este produto",
+      })
+      return
+    }
+
+    // Adicionar ao carrinho
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: price,
+      image: product.image,
+    })
+
+    // Mostrar toast de sucesso
+    toast({
+      title: "Produto adicionado!",
+      description: `${product.name} foi adicionado ao carrinho`,
+      duration: 3000,
+    })
+
+    // Fechar o modal
     handleCloseProductModal()
-    // TODO: Implementar adicionar ao carrinho
   }
 
   return (
     <>
+      {/* Animações CSS para o logo */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          50% { transform: translateX(100%); }
+          100% { transform: translateX(100%); }
+        }
+        
+        @keyframes shimmer-app {
+          0% { transform: translateX(-100%); opacity: 0; }
+          30% { opacity: 1; }
+          70% { opacity: 1; }
+          100% { transform: translateX(100%); opacity: 0; }
+        }
+        
+        @keyframes glow-app {
+          0%, 100% { 
+            text-shadow: 0 0 4px rgba(234, 88, 12, 0.3);
+            filter: brightness(1);
+          }
+          50% { 
+            text-shadow: 0 0 8px rgba(234, 88, 12, 0.5), 0 0 12px rgba(234, 88, 12, 0.3);
+            filter: brightness(1.1);
+          }
+        }
+        
+        @keyframes pulse-ring {
+          0%, 100% { 
+            opacity: 0.2;
+            transform: scale(1);
+          }
+          50% { 
+            opacity: 0.4;
+            transform: scale(1.05);
+          }
+        }
+        
+        @keyframes glow-outer {
+          0%, 100% { 
+            opacity: 0.2;
+          }
+          50% { 
+            opacity: 0.35;
+          }
+        }
+        
+        @keyframes color-shift-vaq {
+          0%, 100% { 
+            color: rgb(38, 38, 38);
+          }
+          50% { 
+            color: rgb(82, 82, 91);
+          }
+        }
+        
+        @keyframes pulse-glow {
+          0%, 100% { 
+            transform: scale(1);
+          }
+          50% { 
+            transform: scale(1.01);
+          }
+        }
+      `}} />
+      
       <main className="min-h-screen bg-gradient-to-br from-neutral-200 via-neutral-300 to-neutral-250 text-neutral-900 relative overflow-hidden">
       {/* Textura sutil de fundo */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808015_1px,transparent_1px),linear-gradient(to_bottom,#80808015_1px,transparent_1px)] bg-[size:24px_24px] opacity-40" />
@@ -160,55 +253,71 @@ export default function Home() {
                 </div>
               </div>
               
-              {/* Título VAQ APP com efeito reflexo - mais espaço e reflexo próximo */}
+              {/* Título VAQ APP com animações automáticas */}
               <div className="relative flex flex-col items-center sm:items-start min-w-0">
-                {/* Texto original - com mais espaço */}
-                <div className="relative w-full pb-1">
+                {/* Texto com animações automáticas */}
+                <div className="relative w-full pb-1 overflow-visible">
                   <h1 
-                    className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-wider drop-shadow-lg relative z-10 whitespace-nowrap"
+                    className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-wider drop-shadow-lg relative z-10 whitespace-nowrap animate-pulse-slow"
                     style={{
                       fontFamily: 'var(--font-logo)',
                       letterSpacing: '0.08em',
                       textTransform: 'uppercase',
                       fontWeight: 400,
                       lineHeight: 0.9,
+                      animation: 'pulse-glow 3s ease-in-out infinite',
                     }}
                   >
-                    <span className="inline-block text-neutral-800 transform hover:scale-105 transition-transform duration-300">VAQ</span>
-                    <span className="inline-block ml-1.5 sm:ml-2 text-orange-500 transform hover:scale-105 transition-transform duration-300">APP</span>
-                  </h1>
-                </div>
-                
-                {/* Reflexo do texto - mais vivo com bordas muito arredondadas */}
-                <div className="relative w-full overflow-hidden" style={{ height: '30%', marginTop: '-2px', borderRadius: '0 0 40px 40px' }}>
-                  <div className="relative w-full h-full" style={{ transform: 'scaleY(-1)', filter: 'blur(2px)', borderRadius: '0 0 40px 40px' }}>
-                    <div className="relative w-full h-full flex items-start justify-center sm:justify-start">
-                      <h1 
-                        className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-wider opacity-30 whitespace-nowrap"
-                        style={{
-                          fontFamily: 'var(--font-logo)',
-                          letterSpacing: '0.08em',
-                          textTransform: 'uppercase',
-                          fontWeight: 400,
-                          lineHeight: 0.9,
-                          filter: 'blur(1px)',
+                    {/* VAQ - Parte escura com efeito de brilho automático */}
+                    <span className="inline-block relative overflow-hidden">
+                      <span className="relative z-10 text-neutral-800" style={{ animation: 'color-shift-vaq 4s ease-in-out infinite' }}>
+                        VAQ
+                      </span>
+                      {/* Efeito de brilho deslizante automático - mais suave */}
+                      <span 
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-neutral-400/40 to-transparent"
+                        style={{ 
+                          animation: 'shimmer 3s ease-in-out infinite',
+                          transform: 'translateX(-100%)',
+                        }}
+                      />
+                    </span>
+                    
+                    {/* APP - Parte laranja suave */}
+                    <span className="inline-block ml-1.5 sm:ml-2 relative">
+                      <span 
+                        className="relative z-10 text-orange-600"
+                        style={{ 
+                          animation: 'glow-app 2.5s ease-in-out infinite',
+                          textShadow: '0 0 4px rgba(234, 88, 12, 0.3)',
                         }}
                       >
-                        <span className="inline-block text-neutral-800" style={{ textShadow: '0 0 4px rgba(0,0,0,0.08), 0 0 8px rgba(0,0,0,0.05)' }}>VAQ</span>
-                        <span className="inline-block ml-1.5 sm:ml-2 text-orange-500" style={{ textShadow: '0 0 4px rgba(249, 115, 22, 0.15), 0 0 8px rgba(249, 115, 22, 0.1)' }}>APP</span>
-                      </h1>
-                    </div>
-                  </div>
-                  {/* Gradiente suave com bordas muito arredondadas */}
+                        APP
+                      </span>
+                      {/* Efeito de brilho pulsante automático */}
+                      <span 
+                        className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0"
+                        style={{ 
+                          animation: 'shimmer-app 3.5s ease-in-out infinite',
+                          transform: 'translateX(-100%)',
+                        }}
+                      />
+                      {/* Efeito de pulso ao redor automático */}
+                      <span 
+                        className="absolute inset-0 rounded-lg bg-orange-500/25 blur-xl"
+                        style={{ 
+                          animation: 'pulse-ring 2s ease-in-out infinite',
+                        }}
+                      />
+                    </span>
+                  </h1>
+                  
+                  {/* Efeito de brilho suave ao redor do logo completo automático */}
                   <div 
-                    className="absolute inset-0 pointer-events-none" 
+                    className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-500/0 via-orange-500/25 to-orange-500/0 blur-3xl"
                     style={{ 
-                      backdropFilter: 'blur(1px)',
-                      borderRadius: '0 0 40px 40px',
-                      background: 'linear-gradient(to top, rgba(229, 229, 229, 0.8) 0%, rgba(229, 229, 229, 0.3) 30%, rgba(229, 229, 229, 0.1) 60%, transparent 100%)',
-                      maskImage: 'linear-gradient(to top, black 0%, black 60%, transparent 100%)',
-                      WebkitMaskImage: 'linear-gradient(to top, black 0%, black 60%, transparent 100%)',
-                    }} 
+                      animation: 'glow-outer 4s ease-in-out infinite',
+                    }}
                   />
                 </div>
               </div>
@@ -226,43 +335,39 @@ export default function Home() {
             Qualidade e tradição em equipamentos de vaquejada
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
-            <Button
-              onClick={() => router.push('/produtos')}
-              className="group relative overflow-hidden rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold transition-all duration-300 px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base shadow-lg hover:shadow-xl hover:shadow-orange-500/50 hover:scale-105 w-full sm:w-auto"
+          {/* Botão WhatsApp Centralizado com Animações */}
+          <div className="flex justify-center px-4 mb-8">
+            <a
+              href="https://wa.me/5581999999999"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:from-green-600 hover:via-green-700 hover:to-green-800 text-white font-bold transition-all duration-500 px-10 sm:px-16 py-5 sm:py-6 text-lg sm:text-xl shadow-2xl hover:shadow-green-500/60 hover:scale-110 hover:-translate-y-2 flex items-center justify-center animate-pulse hover:animate-none"
             >
-              {/* Efeito de brilho animado */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+              {/* Efeito de brilho animado mais intenso */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
               
-              <span className="relative z-10 flex items-center justify-center gap-2">
-                <svg className="w-5 h-5 group-hover:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              {/* Efeito de partículas brilhantes */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <div className="absolute top-3 left-6 w-3 h-3 bg-white rounded-full animate-ping" style={{ animationDelay: '0s' }} />
+                <div className="absolute bottom-3 right-8 w-2 h-2 bg-white rounded-full animate-ping" style={{ animationDelay: '0.3s' }} />
+                <div className="absolute top-1/2 left-1/4 w-1.5 h-1.5 bg-white rounded-full animate-ping" style={{ animationDelay: '0.6s' }} />
+              </div>
+              
+              {/* Efeito de ondas */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent animate-pulse" />
+              </div>
+              
+              <span className="relative z-10 flex items-center justify-center gap-4">
+                <svg className="w-8 h-8 sm:w-10 sm:h-10 group-hover:animate-bounce group-hover:rotate-12 transition-all duration-300" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
                 </svg>
-                Explorar Produtos
-                <svg className="w-4 h-4 group-hover:translate-y-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <span className="tracking-wide drop-shadow-lg">Entre em contato agora via Zap</span>
+                <svg className="w-6 h-6 sm:w-7 sm:h-7 group-hover:translate-x-3 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </span>
-            </Button>
-
-            <Button
-              onClick={() => {
-                const sobreSection = document.getElementById('sobre-section')
-                sobreSection?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-              }}
-              variant="outline"
-              className="group relative overflow-hidden rounded-lg border-2 border-neutral-700 hover:border-orange-500/50 bg-neutral-900/50 hover:bg-neutral-800/80 text-neutral-200 hover:text-white font-semibold transition-all duration-300 px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base shadow-lg hover:shadow-xl hover:shadow-orange-500/20 hover:scale-105 w-full sm:w-auto backdrop-blur-sm"
-            >
-              {/* Efeito de brilho animado */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-              
-              <span className="relative z-10 flex items-center justify-center gap-2">
-                <svg className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Sobre Nós
-              </span>
-            </Button>
+            </a>
           </div>
         </div>
 

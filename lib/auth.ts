@@ -1,4 +1,5 @@
 import { type NextAuthOptions } from 'next-auth';
+import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
@@ -185,3 +186,14 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login',
   },
 };
+
+// Exportar função auth para uso em API routes (NextAuth v5)
+// No NextAuth v5, precisamos criar uma instância e usar o método auth()
+let authInstance: ReturnType<typeof NextAuth> | null = null;
+
+export async function getAuth() {
+  if (!authInstance) {
+    authInstance = NextAuth(authOptions);
+  }
+  return authInstance.auth();
+}

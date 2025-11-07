@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import { AddToCartModal } from "./add-to-cart-modal"
 import { useCart } from "@/src/hooks/use-cart"
 import { useToast } from "./toast"
+import { useSession } from "next-auth/react"
 
 interface Product {
   id: string
@@ -30,29 +31,105 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
   const router = useRouter()
   const { addToCart } = useCart()
   const { toast } = useToast()
+  const { data: session } = useSession()
   const [favorites, setFavorites] = React.useState<Set<string>>(new Set())
   const [hoveredProduct, setHoveredProduct] = React.useState<string | null>(null)
   const [modalOpen, setModalOpen] = React.useState(false)
   const [addedProduct, setAddedProduct] = React.useState<Product | null>(null)
 
-  // Carregar favoritos do localStorage
+  // Carregar favoritos do localStorage e do banco
   React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("favorites")
-      if (saved) {
-        try {
-          const productIds = JSON.parse(saved)
-          setFavorites(new Set(productIds))
-        } catch (error) {
-          console.error("Erro ao carregar favoritos:", error)
+    const loadFavorites = async () => {
+      if (typeof window !== "undefined") {
+        let localIds: string[] = []
+        
+        // Carregar do localStorage primeiro (para usuários não logados)
+        const saved = localStorage.getItem("favorites")
+        if (saved) {
+          try {
+            localIds = JSON.parse(saved)
+            setFavorites(new Set(localIds))
+          } catch (error) {
+            console.error("Erro ao carregar favoritos:", error)
+          }
+        }
+
+        // Se usuário estiver logado, carregar do banco também
+        if (session?.user) {
+          try {
+            const res = await fetch('/api/favorites')
+            if (res.ok) {
+              const dbFavorites = await res.json()
+              const dbProductIds = dbFavorites.map((f: any) => f.productId)
+              // Combinar com localStorage
+              const allIds = [...new Set([...localIds, ...dbProductIds])]
+              setFavorites(new Set(allIds))
+              localStorage.setItem("favorites", JSON.stringify(allIds))
+            }
+          } catch (error) {
+            console.error("Erro ao carregar favoritos do banco:", error)
+          }
         }
       }
     }
-  }, [])
+    loadFavorites()
+  }, [session])
 
-  const toggleFavorite = (productId: string, e: React.MouseEvent) => {
+  const toggleFavorite = async (productId: string, e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
+    
+    const isAdding = !favorites.has(productId)
+    
+    // Tentar salvar no banco se usuário estiver logado
+    if (session?.user) {
+      try {
+        if (isAdding) {
+          // Adicionar favorito no banco
+          const res = await fetch('/api/favorites', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ productId }),
+          })
+          
+          if (res.ok) {
+            toast({
+              title: "Favorito adicionado!",
+              description: "Produto salvo nos seus favoritos",
+              duration: 2000,
+            })
+          } else {
+            const error = await res.json()
+            console.error('Erro ao salvar favorito no banco:', error)
+            toast({
+              title: "Aviso",
+              description: "Favorito salvo localmente. Faça login para sincronizar.",
+              duration: 3000,
+            })
+          }
+        } else {
+          // Remover favorito do banco
+          const res = await fetch(`/api/favorites?productId=${productId}`, {
+            method: 'DELETE',
+          })
+          
+          if (!res.ok) {
+            console.warn('Erro ao remover favorito do banco')
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao salvar favorito no banco:', error)
+        toast({
+          title: "Aviso",
+          description: "Favorito salvo localmente. Verifique sua conexão.",
+          duration: 3000,
+        })
+      }
+    }
+    
+    // Atualizar estado local e localStorage (sempre, como fallback)
     setFavorites((prev) => {
       const newSet = new Set(prev)
       if (newSet.has(productId)) {
@@ -61,7 +138,7 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
         newSet.add(productId)
       }
       
-      // Salvar no localStorage
+      // Salvar no localStorage (fallback ou para usuários não logados)
       if (typeof window !== "undefined") {
         try {
           const productIds = Array.from(newSet)
@@ -75,7 +152,7 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
     })
     
     // Redirecionar para página de favoritos se foi adicionado
-    if (!favorites.has(productId)) {
+    if (isAdding) {
       setTimeout(() => {
         window.location.href = "/favoritos"
       }, 300)
@@ -127,10 +204,10 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
     <>
       <div className={cn("w-full max-w-7xl mx-auto px-2 sm:px-4 py-8 sm:py-12 md:py-16", className)}>
         <div className="text-center mb-8 sm:mb-10 md:mb-12">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-800 mb-2 sm:mb-3 tracking-tight drop-shadow-sm">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-700 mb-2 sm:mb-3 tracking-tight drop-shadow-sm">
             Produtos em Destaque
           </h2>
-          <p className="text-neutral-700 text-sm sm:text-base md:text-lg px-4">
+          <p className="text-neutral-600 text-sm sm:text-base md:text-lg px-4">
             Seleção especial dos nossos melhores produtos
           </p>
         </div>

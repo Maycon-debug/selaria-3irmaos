@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useMemo, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useProducts, Product } from "@/src/hooks/use-products"
-import { formatProductForGrid, formatPrice, extractCategoryFromName } from "@/src/lib/product-utils"
+import { formatProductForGrid, formatPrice, extractCategoryFromName, smartProductSearch } from "@/src/lib/product-utils"
 import { Button } from "@/src/components/ui/button"
 import { Input } from "@/src/components/ui/input"
 import { ProductGrid } from "@/src/components/ui/product-grid"
@@ -29,11 +29,13 @@ type SortOption = 'name' | 'price-asc' | 'price-desc' | 'rating' | 'newest'
 
 export default function ProdutosPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { products, loading, error } = useProducts()
   const { addToCart } = useCart()
   const { toast } = useToast()
   
-  const [searchTerm, setSearchTerm] = useState("")
+  // Inicializar searchTerm com o parâmetro da URL se existir
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [sortBy, setSortBy] = useState<SortOption>('newest')
@@ -41,6 +43,14 @@ export default function ProdutosPage() {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000])
   const [modalOpen, setModalOpen] = useState(false)
   const [addedProduct, setAddedProduct] = useState<Product | null>(null)
+
+  // Atualizar searchTerm quando o parâmetro da URL mudar
+  useEffect(() => {
+    const searchFromUrl = searchParams.get('search')
+    if (searchFromUrl) {
+      setSearchTerm(searchFromUrl)
+    }
+  }, [searchParams])
 
   // Extrair categorias únicas dos produtos
   const categories = useMemo(() => {
@@ -56,12 +66,9 @@ export default function ProdutosPage() {
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = products
 
-    // Filtro por busca
+    // Filtro por busca inteligente
     if (searchTerm) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      filtered = filtered.filter(product => smartProductSearch(product, searchTerm))
     }
 
     // Filtro por categoria
