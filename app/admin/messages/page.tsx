@@ -26,6 +26,7 @@ import {
   X,
   MessageCircle
 } from 'lucide-react'
+import { ReplyModal } from '@/src/components/ui/reply-modal'
 
 interface MensagemContato {
   id: string
@@ -50,6 +51,8 @@ export default function MessagesPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedMessage, setSelectedMessage] = useState<MensagemContato | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [replyModalOpen, setReplyModalOpen] = useState(false)
+  const [replyType, setReplyType] = useState<'email' | 'whatsapp'>('email')
 
   useEffect(() => {
     // Verificar autenticação
@@ -202,31 +205,43 @@ export default function MessagesPage() {
     return cleaned.length >= 10 ? `55${cleaned}` : null
   }
 
-  const getWhatsAppLink = (mensagem: MensagemContato): string | null => {
+  const getWhatsAppLink = (mensagem: MensagemContato, customMessage?: string): string | null => {
     const phone = formatPhoneForWhatsApp(mensagem.phone)
-    
-    // Debug temporário
-    if (mensagem.phone) {
-      console.log('Telefone original:', mensagem.phone)
-      console.log('Telefone formatado:', phone)
-    }
     
     if (!phone) return null
     
-    // Mensagem pré-formatada profissional
-    const message = `Olá ${mensagem.name}! 👋
+    // Mensagem melhorada e mais profissional
+    const message = customMessage || `Olá ${mensagem.name}! 👋
 
-Recebemos sua mensagem sobre: *${mensagem.subject}*
+Obrigado por entrar em contato conosco sobre: *${mensagem.subject}*
 
-Agradecemos pelo contato! Nossa equipe está analisando sua solicitação e em breve entraremos em contato.
+Recebemos sua mensagem e nossa equipe está analisando sua solicitação. Em breve entraremos em contato com mais informações.
 
-Se precisar de algo urgente, fique à vontade para nos chamar.
+Se precisar de algo urgente, fique à vontade para nos chamar a qualquer momento.
+
+Estamos sempre prontos para ajudar! 🤝
 
 Atenciosamente,
-Equipe VAQ APP 🐂`
+*Equipe Selaria III Irmãos* 🐂
+
+📍 Cachoeirinha-PE • Cidade do Couro e Aço
+📧 contato@selaria3irmãos.com.br
+📱 (81) 99999-9999`
     
     const encodedMessage = encodeURIComponent(message)
     return `https://wa.me/${phone}?text=${encodedMessage}`
+  }
+
+  const handleReplyClick = (type: 'email' | 'whatsapp') => {
+    if (!selectedMessage) return
+    setReplyType(type)
+    setReplyModalOpen(true)
+  }
+
+  const handleReplySuccess = () => {
+    if (selectedMessage) {
+      updateStatus(selectedMessage.id, 'REPLIED')
+    }
   }
 
   const getStatusBadge = (status: string) => {
@@ -468,24 +483,19 @@ Equipe VAQ APP 🐂`
                     </div>
                     <div className="flex gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
                       {getWhatsAppLink(mensagem) ? (
-                        <a
-                          href={getWhatsAppLink(mensagem)!}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={(e) => {
                             e.stopPropagation()
-                            console.log('WhatsApp link clicado na lista:', getWhatsAppLink(mensagem))
+                            setSelectedMessage(mensagem)
+                            handleReplyClick('whatsapp')
                           }}
+                          className="bg-green-500/10 border-green-500/30 text-green-400 hover:bg-green-500/20 hover:scale-105 transition-transform"
+                          title={`Responder via WhatsApp - ${mensagem.phone}`}
                         >
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="bg-green-500/10 border-green-500/30 text-green-400 hover:bg-green-500/20 hover:scale-105 transition-transform"
-                            title={`Responder via WhatsApp - ${mensagem.phone}`}
-                          >
-                            <MessageCircle className="w-4 h-4" />
-                          </Button>
-                        </a>
+                          <MessageCircle className="w-4 h-4" />
+                        </Button>
                       ) : mensagem.phone ? (
                         <Button
                           size="sm"
@@ -624,31 +634,21 @@ Equipe VAQ APP 🐂`
               <div className="space-y-3 pt-4 border-t border-neutral-700/50">
                 {/* Botões principais de resposta */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <a
-                    href={`mailto:${selectedMessage.email}?subject=Re: ${selectedMessage.subject}`}
-                    className="w-full"
+                  <Button 
+                    onClick={() => handleReplyClick('email')}
+                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all"
                   >
-                    <Button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all">
-                      <Mail className="w-4 h-4 mr-2" />
-                      Responder por E-mail
-                    </Button>
-                  </a>
+                    <Mail className="w-4 h-4 mr-2" />
+                    Responder por E-mail
+                  </Button>
                   {getWhatsAppLink(selectedMessage) ? (
-                    <a
-                      href={getWhatsAppLink(selectedMessage)!}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full"
-                      onClick={() => {
-                        // Log para debug
-                        console.log('WhatsApp link clicado:', getWhatsAppLink(selectedMessage))
-                      }}
+                    <Button
+                      onClick={() => handleReplyClick('whatsapp')}
+                      className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all"
                     >
-                      <Button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all">
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Responder via WhatsApp
-                      </Button>
-                    </a>
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Responder via WhatsApp
+                    </Button>
                   ) : (
                     <div className="w-full">
                       <Button
@@ -712,6 +712,19 @@ Equipe VAQ APP 🐂`
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal de Resposta */}
+      {selectedMessage && (
+        <ReplyModal
+          isOpen={replyModalOpen}
+          onClose={() => {
+            setReplyModalOpen(false)
+            handleReplySuccess()
+          }}
+          message={selectedMessage}
+          type={replyType}
+        />
       )}
     </div>
   )

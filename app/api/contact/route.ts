@@ -7,9 +7,9 @@ export async function POST(request: NextRequest) {
     const { name, email, phone, subject, message } = body
 
     // Validação dos campos obrigatórios
-    if (!name || !email || !subject || !message) {
+    if (!name || !email || !phone || !subject || !message) {
       return NextResponse.json(
-        { error: "Campos obrigatórios: nome, email, assunto e mensagem" },
+        { error: "Campos obrigatórios: nome, email, telefone, assunto e mensagem" },
         { status: 400 }
       )
     }
@@ -23,12 +23,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validação de telefone
+    const cleanedPhone = phone.replace(/\D/g, '')
+    if (cleanedPhone.length < 10 || cleanedPhone.length > 11) {
+      return NextResponse.json(
+        { error: "Telefone inválido. Digite um número válido (ex: (81) 99999-9999)" },
+        { status: 400 }
+      )
+    }
+
     // Salvar mensagem no banco de dados
     const mensagem = await prisma.mensagemContato.create({
       data: {
         name,
         email,
-        phone: phone || null,
+        phone: phone,
         subject,
         message,
       },

@@ -27,6 +27,13 @@ export default function Contato() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
 
+  const validatePhone = (phone: string): boolean => {
+    // Remove todos os caracteres não numéricos
+    const cleaned = phone.replace(/\D/g, '')
+    // Valida se tem pelo menos 10 dígitos (telefone fixo) ou 11 dígitos (celular)
+    return cleaned.length >= 10 && cleaned.length <= 11
+  }
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -36,6 +43,16 @@ export default function Contato() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    
+    // Validação do telefone antes de enviar
+    if (!formData.phone || !validatePhone(formData.phone)) {
+      toast({
+        title: "Telefone inválido",
+        description: "Por favor, digite um número de telefone válido (ex: (81) 99999-9999)",
+      })
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -140,14 +157,16 @@ export default function Contato() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Telefone</Label>
+                      <Label htmlFor="phone">Telefone *</Label>
                       <Input
                         id="phone"
                         name="phone"
                         type="tel"
+                        required
                         value={formData.phone}
                         onChange={handleChange}
                         placeholder="(81) 99999-9999"
+                        pattern="[0-9\s\(\)\-]+"
                         className="bg-white/5 border-white/10 text-white placeholder:text-neutral-500"
                       />
                     </div>
