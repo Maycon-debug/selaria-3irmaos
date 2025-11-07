@@ -4,7 +4,6 @@ import * as React from "react"
 import Link from "next/link"
 import { X, ShoppingBag, Heart, User, Settings, Home } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "./button"
 
 interface SidebarProps {
   isOpen: boolean
@@ -49,7 +48,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 h-full w-80 z-50 transform transition-transform duration-300 ease-in-out",
+          "fixed top-0 left-0 h-full w-[85vw] max-w-80 z-50 transform transition-transform duration-300 ease-in-out",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >

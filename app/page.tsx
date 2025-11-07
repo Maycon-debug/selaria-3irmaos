@@ -14,7 +14,7 @@ import { useToast } from "@/src/components/ui/toast"
 import { useTheme } from "@/src/hooks/use-theme"
 import { formatProductForCarousel, formatProductForGrid, formatPrice } from "@/src/lib/product-utils"
 
-// Tipo para produto selecionado no modal (compatível com ProductModal)
+// Tipo para produto selecionado no modal //
 interface SelectedProduct {
   id: string
   name: string
@@ -26,7 +26,7 @@ interface SelectedProduct {
   rating?: number
 }
 
-// Tipo para produtos dos componentes (description opcional)
+
 type ProductForComponent = {
   id: string
   name: string
@@ -131,7 +131,7 @@ export default function Home() {
   }
 
   const handleAddToCart = (product: SelectedProduct) => {
-    // Converter preço de string formatada para número
+    // Converter preço de string formatada para número'
     const price = product.price 
       ? parseFloat(product.price.replace(/[^\d,]/g, '').replace(',', '.')) 
       : 0

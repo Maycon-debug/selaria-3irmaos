@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { X, CheckCircle2 } from "lucide-react"
+import { X, CheckCircle2, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export interface Toast {
@@ -9,6 +9,7 @@ export interface Toast {
   title: string
   description?: string
   duration?: number
+  variant?: "default" | "destructive"
 }
 
 interface ToastContextType {
@@ -26,8 +27,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     
     setToasts((prev) => [...prev, toastWithId])
 
-    // Remover automaticamente após a duração
-    const duration = newToast.duration || 5000
+    // Remover automaticamente após a duração (padrão aumentado para 6000ms)
+    const duration = newToast.duration || 6000
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id))
     }, duration)
@@ -52,19 +53,45 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
 function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) {
   const [isVisible, setIsVisible] = React.useState(false)
+  const [isExiting, setIsExiting] = React.useState(false)
 
   React.useEffect(() => {
-    // Animação de entrada
-    setTimeout(() => setIsVisible(true), 10)
+    // Animação de entrada mais suave
+    const timer = setTimeout(() => setIsVisible(true), 50)
+    return () => clearTimeout(timer)
   }, [])
+
+  React.useEffect(() => {
+    // Remover automaticamente após a duração com animação de saída
+    const duration = toast.duration || 6000
+    const timer = setTimeout(() => {
+      setIsExiting(true)
+      setTimeout(() => {
+        setIsVisible(false)
+        onRemove(toast.id)
+      }, 300)
+    }, duration)
+    
+    return () => clearTimeout(timer)
+  }, [toast.duration, toast.id, onRemove])
+
+  const handleRemove = () => {
+    setIsExiting(true)
+    setTimeout(() => {
+      setIsVisible(false)
+      onRemove(toast.id)
+    }, 300)
+  }
 
   return (
     <div
       className={cn(
-        "pointer-events-auto relative w-full sm:w-[356px] flex items-start gap-3 p-4 rounded-lg border bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl border-neutral-800/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] transition-all duration-300",
-        isVisible ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+        "pointer-events-auto relative w-full sm:w-[356px] flex items-start gap-3 p-4 rounded-lg border bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl border-neutral-800/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] transition-all duration-500 ease-out",
+        isVisible && !isExiting 
+          ? "translate-x-0 opacity-100 scale-100" 
+          : "translate-x-full opacity-0 scale-95"
       )}
-      onClick={() => onRemove(toast.id)}
+      onClick={handleRemove}
     >
       {/* Efeito espelho/glassmorphism */}
       <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/5 to-transparent pointer-events-none rounded-lg" />
@@ -73,9 +100,15 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
       <div className="relative z-10 flex items-start gap-3 w-full">
         {/* Ícone */}
         <div className="flex-shrink-0 mt-0.5">
-          <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-500/20 border border-green-500/30">
-            <CheckCircle2 className="h-5 w-5 text-green-400" />
-          </div>
+          {toast.variant === "destructive" ? (
+            <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-500/20 border border-red-500/30">
+              <AlertCircle className="h-5 w-5 text-red-400" />
+            </div>
+          ) : (
+            <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-500/20 border border-green-500/30">
+              <CheckCircle2 className="h-5 w-5 text-green-400" />
+            </div>
+          )}
         </div>
 
         {/* Conteúdo */}
@@ -94,8 +127,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
         <button
           onClick={(e) => {
             e.stopPropagation()
-            setIsVisible(false)
-            setTimeout(() => onRemove(toast.id), 200)
+            handleRemove()
           }}
           className="flex-shrink-0 w-6 h-6 rounded-md bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10 hover:border-white/20 transition-all duration-200 flex items-center justify-center"
           aria-label="Fechar notificação"

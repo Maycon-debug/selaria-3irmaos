@@ -13,23 +13,64 @@ import { Button } from "@/src/components/ui/button"
 import { Input } from "@/src/components/ui/input"
 import { Sidebar } from "@/src/components/ui/sidebar"
 import Link from "next/link"
-import { User, ShoppingCart, Menu, LogOut, Settings, Heart, ChevronDown, Home, Search, Moon, Sun } from "lucide-react"
+import Image from "next/image"
+import { User, ShoppingCart, Menu, LogOut, Settings, Heart, ChevronDown, Search, Moon, Sun } from "lucide-react"
 import { useCart } from "@/src/hooks/use-cart"
 import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/src/components/ui/toast"
 import { useTheme } from "@/src/hooks/use-theme"
+import { LogoutConfirmModal } from "@/src/components/ui/logout-confirm-modal"
+
+// Estender o tipo de usuário do NextAuth para incluir role
+type ExtendedUser = {
+  id?: string
+  name?: string | null
+  email?: string | null
+  image?: string | null
+  role?: "USER" | "ADMIN"
+}
 
 export function Header() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
+  const [mounted, setMounted] = useState(false)
   const { cartCount } = useCart()
   const { data: session, status } = useSession()
   const router = useRouter()
   const { toast } = useToast()
   const { theme, toggleTheme } = useTheme()
   const userMenuRef = useRef<HTMLDivElement>(null)
+
+  // Garantir que valores do cliente só sejam usados após hidratação
+  // Usando setTimeout para tornar a atualização assíncrona e evitar o erro do linter
+  // Isso é necessário para prevenir erros de hidratação no Next.js
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMounted(true)
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Verificar se a sessão foi invalidada (usuário deletado)
+  useEffect(() => {
+    if (status === "unauthenticated" && mounted) {
+      // Se estava autenticado antes e agora não está, pode ter sido deletado
+      // Não fazer nada aqui, o NextAuth já trata isso
+    }
+    
+    // Verificar se a sessão existe mas o usuário não tem dados válidos
+    if (status === "authenticated" && session && mounted) {
+      if (!session.user || !session.user.email) {
+        // Sessão inválida, forçar logout
+        signOut({ redirect: false }).then(() => {
+          router.refresh()
+        })
+      }
+    }
+  }, [status, session, mounted, router])
 
   // Fechar menu ao clicar fora
   useEffect(() => {
@@ -48,32 +89,49 @@ export function Header() {
     }
   }, [isUserMenuOpen])
 
+  const handleLogoutClick = () => {
+    setIsUserMenuOpen(false)
+    setShowLogoutModal(true)
+  }
+
   const handleLogout = async () => {
     try {
       await signOut({ redirect: false })
       toast({
         title: "Logout realizado",
         description: "Você foi desconectado com sucesso",
+        duration: 4000,
       })
       router.push("/")
       router.refresh()
-    } catch (error) {
+    } catch {
       toast({
         title: "Erro",
         description: "Não foi possível fazer logout",
         variant: "destructive",
+        duration: 4000,
       })
     }
+  }
+
+  const handleLogin = () => {
+    setShowLogoutModal(false)
+    router.push("/login")
+  }
+
+  const handleContinueAsVisitor = async () => {
+    setShowLogoutModal(false)
+    await handleLogout()
   }
 
   return (
     <>
       {/* NAVBAR FIXA */}
-      <header className="fixed top-0 left-0 w-full border-b border-neutral-900/30 bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] z-50">
+      <header className="fixed top-0 left-0 w-full border-b border-neutral-900/30 bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] z-50 overflow-visible">
         {/* Efeito espelho/glassmorphism */}
         <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/5 to-transparent pointer-events-none" />
         <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,rgba(255,255,255,0.1)_50%,transparent_100%)] pointer-events-none opacity-50" />
-        <div className="relative max-w-7xl mx-auto flex items-center justify-between py-3 px-2 sm:px-4 lg:px-6 gap-2 sm:gap-4">
+        <div className="relative max-w-7xl mx-auto flex items-center justify-between py-3 px-2 sm:px-4 lg:px-6 gap-1 sm:gap-2 md:gap-4 overflow-visible">
           {/* Lado Esquerdo: Logo e Menu Mobile */}
           <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
             <button
@@ -117,14 +175,14 @@ export function Header() {
           </div>
 
           {/* Centro: Navegação e Busca */}
-          <div className="flex-1 flex items-center justify-center gap-2 sm:gap-3 lg:gap-4 max-w-3xl mx-2 sm:mx-4">
+          <div className="flex-1 flex items-center justify-center gap-1 sm:gap-2 md:gap-3 lg:gap-4 max-w-3xl mx-1 sm:mx-2 md:mx-4 min-w-0">
             {/* Menu de Navegação - Oculto em mobile pequeno */}
             <NavigationMenu className="text-neutral-200 hidden md:flex">
               <NavigationMenuList className="gap-1 sm:gap-2">
                 <NavigationMenuItem>
                   <NavigationMenuTrigger className="text-xs sm:text-sm px-2 sm:px-3">Produtos</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                  <ul className="grid w-[calc(100vw-2rem)] max-w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
                     <li>
                       <NavigationMenuLink asChild>
                         <Link
@@ -305,13 +363,13 @@ export function Header() {
             </NavigationMenu>
 
             {/* Barra de Busca */}
-            <div className="relative flex-1 max-w-md">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-neutral-400" />
+            <div className="relative flex-1 max-w-md min-w-0">
+              <div className="absolute inset-y-0 left-0 pl-2 sm:pl-3 flex items-center pointer-events-none">
+                <Search className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-400" />
               </div>
               <Input
                 type="text"
-                placeholder="Buscar produtos..."
+                placeholder="Buscar..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => {
@@ -320,7 +378,7 @@ export function Header() {
                     setSearchTerm("")
                   }
                 }}
-                className="pl-10 pr-4 py-2 h-9 text-sm bg-white/5 backdrop-blur-sm border-white/10 text-neutral-200 placeholder:text-neutral-500 focus:bg-white/10 focus:border-orange-500/50 transition-all duration-200 w-full"
+                className="pl-8 sm:pl-10 pr-2 sm:pr-4 py-1.5 sm:py-2 h-8 sm:h-9 text-xs sm:text-sm bg-white/5 backdrop-blur-sm border-white/10 text-neutral-200 placeholder:text-neutral-500 focus:bg-white/10 focus:border-orange-500/50 transition-all duration-200 w-full"
               />
             </div>
           </div>
@@ -331,9 +389,10 @@ export function Header() {
             <button
               onClick={toggleTheme}
               className="inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-white/5 backdrop-blur-sm text-neutral-300 hover:text-white hover:bg-white/15 hover:backdrop-blur-md border border-white/10 hover:border-white/30 transition-all duration-300 shadow-sm hover:shadow-md relative group"
-              aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
+              aria-label={mounted && theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
+              suppressHydrationWarning
             >
-              {theme === "dark" ? (
+              {mounted && theme === "dark" ? (
                 <Sun className="h-4 w-4 sm:h-5 sm:w-5 group-hover:rotate-180 transition-transform duration-500" />
               ) : (
                 <Moon className="h-4 w-4 sm:h-5 sm:w-5 group-hover:-rotate-12 transition-transform duration-500" />
@@ -341,19 +400,25 @@ export function Header() {
             </button>
             
             {/* Menu do Usuário Logado */}
-            {status === "authenticated" && session?.user ? (
+            {mounted && status === "authenticated" && session?.user ? (
               <div className="relative" ref={userMenuRef}>
                 <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setIsUserMenuOpen(!isUserMenuOpen)
+                  }}
                   className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-white/5 backdrop-blur-sm text-neutral-300 hover:text-white hover:bg-white/15 hover:backdrop-blur-md border border-white/10 hover:border-white/30 transition-all duration-300 shadow-sm hover:shadow-md group"
                   aria-label="Menu do usuário"
+                  type="button"
                 >
                   {/* Foto do perfil ou inicial */}
                   <div className="relative flex-shrink-0">
                     {session.user.image ? (
-                      <img
+                      <Image
                         src={session.user.image}
                         alt={session.user.name || "Usuário"}
+                        width={36}
+                        height={36}
                         className="h-8 w-8 sm:h-9 sm:w-9 rounded-full border-2 border-white/20 group-hover:border-white/40 transition-all duration-300 object-cover"
                       />
                     ) : (
@@ -380,14 +445,16 @@ export function Header() {
 
                 {/* Dropdown Menu */}
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-gradient-to-b from-neutral-900/95 to-neutral-950/95 backdrop-blur-xl border border-neutral-800/50 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-56 sm:w-56 bg-gradient-to-b from-neutral-900/95 to-neutral-950/95 backdrop-blur-xl border border-neutral-800/50 rounded-xl shadow-2xl overflow-hidden z-[100] opacity-100 transform transition-all duration-200">
                     {/* Header do menu */}
                     <div className="p-4 border-b border-neutral-800/50">
                       <div className="flex items-center gap-3">
                         {session.user.image ? (
-                          <img
+                          <Image
                             src={session.user.image}
                             alt={session.user.name || "Usuário"}
+                            width={48}
+                            height={48}
                             className="h-12 w-12 rounded-full border-2 border-orange-500/50 object-cover"
                           />
                         ) : (
@@ -402,9 +469,9 @@ export function Header() {
                           <p className="text-xs text-neutral-400 truncate">
                             {session.user.email}
                           </p>
-                          {(session.user as any)?.role && (
+                          {(session.user as ExtendedUser)?.role && (
                             <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-medium rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                              {(session.user as any).role === 'ADMIN' ? 'Administrador' : 'Usuário'}
+                              {(session.user as ExtendedUser).role === 'ADMIN' ? 'Administrador' : 'Usuário'}
                             </span>
                           )}
                         </div>
@@ -426,10 +493,18 @@ export function Header() {
                         onClick={() => setIsUserMenuOpen(false)}
                         className="flex items-center gap-3 px-3 py-2 rounded-lg text-neutral-300 hover:text-white hover:bg-white/10 transition-all duration-200 group"
                       >
+                        <User className="h-4 w-4 group-hover:text-blue-400 transition-colors" />
+                        <span className="text-sm">Perfil</span>
+                      </Link>
+                      <Link
+                        href="/perfil"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-neutral-300 hover:text-white hover:bg-white/10 transition-all duration-200 group"
+                      >
                         <Settings className="h-4 w-4 group-hover:text-blue-400 transition-colors" />
                         <span className="text-sm">Configurações</span>
                       </Link>
-                      {(session.user as any)?.role === 'ADMIN' && (
+                      {(session.user as ExtendedUser)?.role === 'ADMIN' && (
                         <Link
                           href="/admin/dashboard"
                           onClick={() => setIsUserMenuOpen(false)}
@@ -440,10 +515,7 @@ export function Header() {
                         </Link>
                       )}
                       <button
-                        onClick={() => {
-                          setIsUserMenuOpen(false)
-                          handleLogout()
-                        }}
+                        onClick={handleLogoutClick}
                         className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200 group border-t border-neutral-800/50 mt-2 pt-2"
                       >
                         <LogOut className="h-4 w-4" />
@@ -483,7 +555,7 @@ export function Header() {
               aria-label="Carrinho de compras"
             >
               <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
-              {cartCount > 0 && (
+              {mounted && cartCount > 0 && (
                 <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-orange-500 text-white text-[8px] sm:text-[10px] font-semibold flex items-center justify-center">
                   {cartCount > 99 ? "99+" : cartCount}
                 </span>
@@ -495,6 +567,14 @@ export function Header() {
 
       {/* Sidebar */}
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
+      {/* Modal de Confirmação de Logout */}
+      <LogoutConfirmModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onLogin={handleLogin}
+        onContinueAsVisitor={handleContinueAsVisitor}
+      />
     </>
   )
 }

@@ -1,25 +1,44 @@
 "use client"
 
-import { useEffect } from "react"
-import Link from "next/link"
-import { X, User, UserCircle } from "lucide-react"
+import { useEffect, useState } from "react"
+import { X, LogIn, UserCircle } from "lucide-react"
 import { Button } from "@/src/components/ui/button"
 
-interface WelcomeModalProps {
+interface LogoutConfirmModalProps {
   isOpen: boolean
   onClose: () => void
   onLogin: () => void
+  onContinueAsVisitor: () => void
 }
 
-export function WelcomeModal({ isOpen, onClose, onLogin }: WelcomeModalProps) {
+export function LogoutConfirmModal({ 
+  isOpen, 
+  onClose, 
+  onLogin, 
+  onContinueAsVisitor 
+}: LogoutConfirmModalProps) {
+  const [isVisible, setIsVisible] = useState(false)
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden"
+      // Pequeno delay para animação de entrada
+      const timeoutId = setTimeout(() => {
+        setIsVisible(true)
+      }, 10)
+      return () => {
+        clearTimeout(timeoutId)
+        document.body.style.overflow = ""
+      }
     } else {
       document.body.style.overflow = ""
-    }
-    return () => {
-      document.body.style.overflow = ""
+      // Atualização assíncrona para evitar cascading renders
+      const frameId = requestAnimationFrame(() => {
+        setIsVisible(false)
+      })
+      return () => {
+        cancelAnimationFrame(frameId)
+      }
     }
   }, [isOpen])
 
@@ -29,14 +48,18 @@ export function WelcomeModal({ isOpen, onClose, onLogin }: WelcomeModalProps) {
     <>
       {/* Overlay com blur */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 transition-opacity duration-300"
+        className={`fixed inset-0 bg-black/60 backdrop-blur-md z-[100] transition-opacity duration-300 ${
+          isVisible ? "opacity-100" : "opacity-0"
+        }`}
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div
-          className="relative w-full max-w-md bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl border border-neutral-800/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] rounded-2xl p-6 sm:p-8 transform transition-all duration-300"
+          className={`relative w-full max-w-md bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl border border-neutral-800/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] rounded-2xl p-6 sm:p-8 transform transition-all duration-300 ${
+            isVisible ? "scale-100 opacity-100 translate-y-0" : "scale-95 opacity-0 translate-y-4"
+          }`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Efeito espelho/glassmorphism */}
@@ -59,7 +82,7 @@ export function WelcomeModal({ isOpen, onClose, onLogin }: WelcomeModalProps) {
                 <UserCircle className="h-10 w-10 text-orange-400" />
               </div>
               <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
-                Bem-vindo!
+                Desconectar?
               </h2>
               <p className="text-neutral-300 text-sm sm:text-base">
                 Como deseja continuar?
@@ -68,17 +91,16 @@ export function WelcomeModal({ isOpen, onClose, onLogin }: WelcomeModalProps) {
 
             {/* Botões */}
             <div className="space-y-3">
-              <Link href="/login" className="block" onClick={onLogin}>
-                <Button
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
-                >
-                  <User className="h-5 w-5" />
-                  Fazer Login
-                </Button>
-              </Link>
+              <Button
+                onClick={onLogin}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                <LogIn className="h-5 w-5" />
+                Fazer Login
+              </Button>
 
               <Button
-                onClick={onClose}
+                onClick={onContinueAsVisitor}
                 variant="outline"
                 className="w-full bg-white/10 hover:bg-white/15 text-white border border-white/20 hover:border-white/30 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-center gap-2"
               >

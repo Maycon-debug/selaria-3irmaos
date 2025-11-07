@@ -154,24 +154,37 @@ export const authOptions: NextAuthOptions = {
         token.role = (user as any).role || 'USER';
       }
 
-      // Se houver email no token, buscar role do banco
-      if (token.email && !token.role) {
+      // Verificar se o usuário ainda existe no banco (a cada refresh do token)
+      if (token.email) {
         try {
           const usuario = await prisma.usuario.findUnique({
             where: { email: token.email as string },
           });
-          if (usuario) {
-            token.role = usuario.role;
-            token.id = usuario.id;
+          
+          // Se o usuário não existir mais, invalidar o token
+          if (!usuario) {
+            return null; // Isso forçará o logout
           }
+          
+          // Atualizar dados do token com dados do banco
+          token.role = usuario.role;
+          token.id = usuario.id;
+          token.name = usuario.name || token.name;
+          token.image = usuario.image || token.image;
         } catch (error) {
           console.error('Erro ao buscar usuário:', error);
+          // Em caso de erro, manter o token (pode ser erro temporário)
         }
       }
 
       return token;
     },
     async session({ session, token }) {
+      // Se o token foi invalidado (null), retornar sessão vazia
+      if (!token) {
+        return null as any;
+      }
+      
       if (token && session.user) {
         if (token.id) (session.user as any).id = token.id as string;
         if (token.email) session.user.email = token.email as string;
