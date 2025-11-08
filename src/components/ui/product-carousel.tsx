@@ -38,18 +38,16 @@ export function ProductCarousel({ products, className, onProductClick }: Product
     setCurrentIndex(index)
   }
 
-  // Auto-play com pausa ao interagir
   React.useEffect(() => {
     if (isPaused) return
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % products.length)
-    }, 5000) // Muda de slide a cada 5 segundos
+    }, 5000)
 
     return () => clearInterval(interval)
   }, [currentIndex, isPaused, products.length])
 
-  // Handler para movimento do mouse na imagem
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>, productId: string) => {
     const imageRef = imageRefs.current[productId]
     if (!imageRef) return
@@ -57,12 +55,9 @@ export function ProductCarousel({ products, className, onProductClick }: Product
     setIsHovering(productId)
     const rect = imageRef.getBoundingClientRect()
     
-    // Calcula a posição do mouse relativa ao container (0 a 100%)
     const mouseX = ((e.clientX - rect.left) / rect.width) * 100
     const mouseY = ((e.clientY - rect.top) / rect.height) * 100
     
-    // Mapeia para backgroundPosition - quando o mouse está no centro (50%), a imagem fica centralizada
-    // Quando move para as bordas, a imagem se move na direção oposta
     const bgX = Math.max(0, Math.min(100, mouseX))
     const bgY = Math.max(0, Math.min(100, mouseY))
     
@@ -83,17 +78,14 @@ export function ProductCarousel({ products, className, onProductClick }: Product
 
   return (
     <div className={cn("relative w-full max-w-7xl mx-auto px-2 sm:px-4", className)}>
-      {/* Carrossel Container */}
       <div
         className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl border border-neutral-800/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] p-3 sm:p-4 md:p-6"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
-        {/* Efeito espelho/glassmorphism */}
         <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/5 to-transparent pointer-events-none rounded-xl sm:rounded-2xl" />
         <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,rgba(255,255,255,0.08)_50%,transparent_100%)] pointer-events-none opacity-60 rounded-xl sm:rounded-2xl" />
         <div className="relative z-10">
-          {/* Slides */}
           <div className="relative h-[400px] sm:h-[500px] md:h-[600px] z-10">
           {products.map((product, index) => (
             <div
@@ -108,7 +100,6 @@ export function ProductCarousel({ products, className, onProductClick }: Product
               )}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 h-full items-center">
-                {/* Imagem com Zoom e Pan */}
                 <div 
                   ref={(el) => {
                     imageRefs.current[product.id] = el
@@ -135,15 +126,12 @@ export function ProductCarousel({ products, className, onProductClick }: Product
                         : "background-position 0.3s ease-out, transform 0.7s ease-out",
                     }}
                   />
-                  {/* Overlay Gradient para melhor contraste */}
                   <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                  {/* Indicador de zoom */}
                   <div className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-neutral-900/90 backdrop-blur-sm text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none border border-neutral-700/50 shadow-lg hidden sm:block">
                     🔍 Mova o mouse para explorar | Clique para ver detalhes
                   </div>
                 </div>
 
-                {/* Descrição */}
                 <div className="flex flex-col justify-center space-y-2 sm:space-y-3 md:space-y-4 px-2 sm:px-4">
                   <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight drop-shadow-lg">
                     {product.name}
@@ -175,7 +163,6 @@ export function ProductCarousel({ products, className, onProductClick }: Product
           ))}
         </div>
 
-          {/* Navegação - Setas */}
           <button
             onClick={prevSlide}
             className="absolute left-1 sm:left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 p-2 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white hover:text-white transition-all duration-200 backdrop-blur-sm shadow-lg hover:shadow-xl"
@@ -191,7 +178,6 @@ export function ProductCarousel({ products, className, onProductClick }: Product
             <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
           </button>
 
-          {/* Indicadores */}
           <div className="absolute bottom-3 sm:bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-20">
             {products.map((_, index) => (
               <button

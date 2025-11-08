@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/lib/prisma';
 import { verifyToken } from '../auth/login/route';
 
-// Verificar autenticação admin
 async function verifyAdmin(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
   
@@ -20,7 +19,6 @@ async function verifyAdmin(request: NextRequest) {
   return payload;
 }
 
-// GET /api/products - Listar todos os produtos
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -28,7 +26,6 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get('limit');
     const search = searchParams.get('search');
 
-    // Construir filtros
     const where: any = {};
     
     if (category) {
@@ -42,7 +39,6 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    // Buscar produtos
     const produtos = await prisma.produto.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -59,7 +55,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/products - Criar novo produto (admin)
 export async function POST(request: NextRequest) {
   try {
     const admin = await verifyAdmin(request);
@@ -74,7 +69,6 @@ export async function POST(request: NextRequest) {
     
     const { name, description, price, originalPrice, category, rating, image, stock } = body;
 
-    // Validação básica
     if (!name || !description || !price || !category || !image) {
       return NextResponse.json(
         { error: 'Campos obrigatórios: nome, descrição, preço, categoria, imagem' },

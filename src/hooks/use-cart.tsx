@@ -27,12 +27,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = React.useState<CartItem[]>([])
   const { data: session } = useSession()
 
-  // Carregar carrinho do localStorage e do banco
   const loadCart = React.useCallback(async () => {
     if (typeof window !== "undefined") {
       let localItems: CartItem[] = []
       
-      // Carregar do localStorage primeiro (para usuários não logados)
       try {
         const saved = localStorage.getItem("cart")
         if (saved) {
@@ -46,13 +44,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setCartItems([])
       }
 
-      // Se usuário estiver logado, carregar do banco também
       if (session?.user) {
         try {
           const res = await fetch('/api/cart')
           if (res.ok) {
             const dbItems = await res.json()
-            // Converter formato do banco para formato do carrinho
             const formattedItems: CartItem[] = dbItems.map((item: any) => ({
               id: item.produto.id,
               name: item.produto.name,
@@ -61,7 +57,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               quantity: item.quantity,
             }))
             
-            // Combinar com localStorage (banco tem prioridade)
             const allItems = [...formattedItems]
             setCartItems(allItems)
             localStorage.setItem("cart", JSON.stringify(allItems))
@@ -73,11 +68,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session])
 
-  // Carregar carrinho ao montar e quando a janela recebe foco ou sessão muda
   React.useEffect(() => {
     loadCart()
     
-    // Escutar mudanças no localStorage de outras abas
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "cart") {
         loadCart()
@@ -97,7 +90,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const existingItem = cartItems.find((i) => i.id === item.id)
     const newQuantity = existingItem ? existingItem.quantity + 1 : 1
     
-    // Tentar salvar no banco se usuário estiver logado
     if (session?.user) {
       try {
         const res = await fetch('/api/cart', {
@@ -119,7 +111,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Atualizar estado local e localStorage (sempre, como fallback)
     setCartItems((prev) => {
       const existingItem = prev.find((i) => i.id === item.id)
       
@@ -132,7 +123,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         newCart = [...prev, { ...item, quantity: 1 }]
       }
 
-      // Salvar no localStorage (fallback ou para usuários não logados)
       if (typeof window !== "undefined") {
         try {
           localStorage.setItem("cart", JSON.stringify(newCart))
@@ -146,7 +136,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [cartItems, session])
 
   const removeFromCart = React.useCallback(async (id: string) => {
-    // Tentar remover do banco se usuário estiver logado
     if (session?.user) {
       try {
         const res = await fetch(`/api/cart?productId=${id}`, {
@@ -161,11 +150,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Atualizar estado local e localStorage (sempre, como fallback)
     setCartItems((prev) => {
       const newCart = prev.filter((item) => item.id !== id)
       
-      // Salvar no localStorage (fallback ou para usuários não logados)
       if (typeof window !== "undefined") {
         try {
           localStorage.setItem("cart", JSON.stringify(newCart))
@@ -181,7 +168,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const updateQuantity = React.useCallback(async (id: string, quantity: number) => {
     const finalQuantity = Math.max(1, quantity)
     
-    // Tentar atualizar no banco se usuário estiver logado
     if (session?.user) {
       try {
         const res = await fetch('/api/cart', {
@@ -203,13 +189,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Atualizar estado local e localStorage (sempre, como fallback)
     setCartItems((prev) => {
       const newCart = prev.map((item) =>
         item.id === id ? { ...item, quantity: finalQuantity } : item
       )
 
-      // Salvar no localStorage (fallback ou para usuários não logados)
       if (typeof window !== "undefined") {
         try {
           localStorage.setItem("cart", JSON.stringify(newCart))
@@ -223,10 +207,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [session])
 
   const clearCart = React.useCallback(async () => {
-    // Limpar do banco se usuário estiver logado
     if (session?.user && cartItems.length > 0) {
       try {
-        // Remover cada item do banco
         await Promise.all(
           cartItems.map(item =>
             fetch(`/api/cart?productId=${item.id}`, {

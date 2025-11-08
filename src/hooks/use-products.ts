@@ -40,7 +40,6 @@ export function useProducts(options: UseProductsOptions = {}) {
         setLoading(true);
         setError(null);
 
-        // Construir URL com query params
         const params = new URLSearchParams();
         if (category) params.append('category', category);
         if (search) params.append('search', search);
@@ -48,11 +47,9 @@ export function useProducts(options: UseProductsOptions = {}) {
 
         const url = `/api/products${params.toString() ? `?${params.toString()}` : ''}`;
         
-        // Delay mínimo para melhorar UX (especialmente em conexões rápidas)
-        // Garante que o usuário veja o estado de loading mesmo em conexões muito rápidas
         const [res] = await Promise.all([
           fetch(url),
-          new Promise(resolve => setTimeout(resolve, 200)) // 200ms mínimo
+          new Promise(resolve => setTimeout(resolve, 200))
         ]);
         
         if (!res.ok) {
@@ -76,7 +73,6 @@ export function useProducts(options: UseProductsOptions = {}) {
   return { products, loading, error };
 }
 
-// Hook para buscar um produto específico
 export function useProduct(id: string | null) {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);

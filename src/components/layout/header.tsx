@@ -22,7 +22,6 @@ import { useToast } from "@/src/components/ui/toast"
 import { useTheme } from "@/src/hooks/use-theme"
 import { LogoutConfirmModal } from "@/src/components/ui/logout-confirm-modal"
 
-// Estender o tipo de usuário do NextAuth para incluir role
 type ExtendedUser = {
   id?: string
   name?: string | null
@@ -44,9 +43,6 @@ export function Header() {
   const { theme, toggleTheme } = useTheme()
   const userMenuRef = useRef<HTMLDivElement>(null)
 
-  // Garantir que valores do cliente só sejam usados após hidratação
-  // Usando setTimeout para tornar a atualização assíncrona e evitar o erro do linter
-  // Isso é necessário para prevenir erros de hidratação no Next.js
   useEffect(() => {
     const timer = setTimeout(() => {
       setMounted(true)
@@ -54,17 +50,12 @@ export function Header() {
     return () => clearTimeout(timer)
   }, [])
 
-  // Verificar se a sessão foi invalidada (usuário deletado)
   useEffect(() => {
     if (status === "unauthenticated" && mounted) {
-      // Se estava autenticado antes e agora não está, pode ter sido deletado
-      // Não fazer nada aqui, o NextAuth já trata isso
     }
     
-    // Verificar se a sessão existe mas o usuário não tem dados válidos
     if (status === "authenticated" && session && mounted) {
       if (!session.user || !session.user.email) {
-        // Sessão inválida, forçar logout
         signOut({ redirect: false }).then(() => {
           router.refresh()
         })
@@ -72,7 +63,6 @@ export function Header() {
     }
   }, [status, session, mounted, router])
 
-  // Fechar menu ao clicar fora
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
@@ -126,13 +116,10 @@ export function Header() {
 
   return (
     <>
-      {/* NAVBAR FIXA */}
       <header className="fixed top-0 left-0 w-full border-b border-neutral-900/30 bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] z-50 overflow-visible">
-        {/* Efeito espelho/glassmorphism */}
         <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/5 to-transparent pointer-events-none" />
         <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,rgba(255,255,255,0.1)_50%,transparent_100%)] pointer-events-none opacity-50" />
         <div className="relative max-w-7xl mx-auto flex items-center justify-between py-3 px-2 sm:px-4 lg:px-6 gap-1 sm:gap-2 md:gap-4 overflow-visible">
-          {/* Lado Esquerdo: Logo e Menu Mobile */}
           <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
             <button
               onClick={() => setIsSidebarOpen(true)}
@@ -148,35 +135,27 @@ export function Header() {
               className="flex items-center group relative overflow-visible px-2 py-1 rounded-lg transition-all duration-300 hover:bg-white/5"
             >
               <h1 className="text-base sm:text-lg lg:text-xl font-bold tracking-tight drop-shadow-lg transition-all duration-300 group-hover:scale-110 relative z-10">
-                {/* VAQ - Parte branca com efeito de brilho */}
                 <span className="inline-block relative overflow-hidden">
                   <span className="relative z-10 text-white group-hover:text-neutral-200 transition-colors duration-300">
                     VAQ
                   </span>
-                  {/* Efeito de brilho deslizante */}
                   <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
                 </span>
                 
-                {/* APP - Parte laranja suave */}
                 <span className="inline-block ml-1 sm:ml-1.5 relative">
                   <span className="relative z-10 text-orange-500 group-hover:text-orange-400 transition-colors duration-300 group-hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]">
                     APP
                   </span>
-                  {/* Efeito de brilho pulsante */}
                   <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out delay-100" />
-                  {/* Efeito de pulso ao redor */}
                   <span className="absolute inset-0 rounded-md bg-orange-500/25 opacity-0 group-hover:opacity-100 blur-md animate-pulse transition-opacity duration-500 -z-10" />
                 </span>
               </h1>
               
-              {/* Efeito de brilho suave ao redor do logo completo */}
               <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-orange-500/0 via-orange-500/25 to-orange-500/0 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-500 -z-0" />
             </Link>
           </div>
 
-          {/* Centro: Navegação e Busca */}
           <div className="flex-1 flex items-center justify-center gap-1 sm:gap-2 md:gap-3 lg:gap-4 max-w-3xl mx-1 sm:mx-2 md:mx-4 min-w-0">
-            {/* Menu de Navegação - Oculto em mobile pequeno */}
             <NavigationMenu className="text-neutral-200 hidden md:flex">
               <NavigationMenuList className="gap-1 sm:gap-2">
                 <NavigationMenuItem>
@@ -362,7 +341,6 @@ export function Header() {
               </NavigationMenuList>
             </NavigationMenu>
 
-            {/* Barra de Busca */}
             <div className="relative flex-1 max-w-md min-w-0">
               <div className="absolute inset-y-0 left-0 pl-2 sm:pl-3 flex items-center pointer-events-none">
                 <Search className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-neutral-400" />
@@ -383,9 +361,7 @@ export function Header() {
             </div>
           </div>
 
-          {/* Lado Direito: Tema, Usuário e Carrinho */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            {/* Botão de Toggle de Tema */}
             <button
               onClick={toggleTheme}
               className="inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-white/5 backdrop-blur-sm text-neutral-300 hover:text-white hover:bg-white/15 hover:backdrop-blur-md border border-white/10 hover:border-white/30 transition-all duration-300 shadow-sm hover:shadow-md relative group"
@@ -399,7 +375,6 @@ export function Header() {
               )}
             </button>
             
-            {/* Menu do Usuário Logado */}
             {mounted && status === "authenticated" && session?.user ? (
               <div className="relative" ref={userMenuRef}>
                 <button
@@ -411,7 +386,6 @@ export function Header() {
                   aria-label="Menu do usuário"
                   type="button"
                 >
-                  {/* Foto do perfil ou inicial */}
                   <div className="relative flex-shrink-0">
                     {session.user.image ? (
                       <Image
@@ -426,11 +400,9 @@ export function Header() {
                         {session.user.name?.[0]?.toUpperCase() || session.user.email?.[0]?.toUpperCase() || "U"}
                       </div>
                     )}
-                    {/* Indicador de online */}
                     <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-neutral-900" />
                   </div>
                   
-                  {/* Nome do usuário (oculto em mobile pequeno) */}
                   <div className="hidden lg:flex flex-col items-start min-w-0">
                     <span className="text-xs font-medium text-white leading-tight truncate max-w-[120px]">
                       {session.user.name || "Usuário"}
@@ -443,10 +415,8 @@ export function Header() {
                   <ChevronDown className={`h-4 w-4 text-neutral-400 transition-transform duration-300 flex-shrink-0 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
 
-                {/* Dropdown Menu */}
                 {isUserMenuOpen && (
                   <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-56 sm:w-56 bg-gradient-to-b from-neutral-900/95 to-neutral-950/95 backdrop-blur-xl border border-neutral-800/50 rounded-xl shadow-2xl overflow-hidden z-[100] opacity-100 transform transition-all duration-200">
-                    {/* Header do menu */}
                     <div className="p-4 border-b border-neutral-800/50">
                       <div className="flex items-center gap-3">
                         {session.user.image ? (
@@ -478,7 +448,6 @@ export function Header() {
                       </div>
                     </div>
 
-                    {/* Links do menu */}
                     <div className="p-2">
                       <Link
                         href="/favoritos"
@@ -527,7 +496,6 @@ export function Header() {
               </div>
             ) : (
               <>
-                {/* Botão Perfil quando não logado */}
                 <Link
                   href="/login"
                   className="inline-flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-white/5 backdrop-blur-sm text-neutral-300 hover:text-white hover:bg-white/15 hover:backdrop-blur-md border border-white/10 hover:border-white/30 transition-all duration-300 shadow-sm hover:shadow-md relative"
@@ -536,7 +504,6 @@ export function Header() {
                   <User className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Link>
                 
-                {/* Botão Entrar (desktop) */}
                 <Link href="/login" className="hidden sm:inline-block">
                   <Button
                     variant="secondary"
@@ -548,7 +515,6 @@ export function Header() {
               </>
             )}
             
-            {/* Carrinho */}
             <Link
               href="/carrinho"
               className="inline-flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-white/5 backdrop-blur-sm text-neutral-300 hover:text-white hover:bg-white/15 hover:backdrop-blur-md border border-white/10 hover:border-white/30 transition-all duration-300 shadow-sm hover:shadow-md relative"
@@ -565,10 +531,8 @@ export function Header() {
         </div>
       </header>
 
-      {/* Sidebar */}
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      {/* Modal de Confirmação de Logout */}
       <LogoutConfirmModal
         isOpen={showLogoutModal}
         onClose={() => setShowLogoutModal(false)}

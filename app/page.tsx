@@ -14,7 +14,6 @@ import { useToast } from "@/src/components/ui/toast"
 import { useTheme } from "@/src/hooks/use-theme"
 import { formatProductForCarousel, formatProductForGrid, formatPrice } from "@/src/lib/product-utils"
 
-// Tipo para produto selecionado no modal //
 interface SelectedProduct {
   id: string
   name: string
@@ -39,7 +38,6 @@ type ProductForComponent = {
 }
 
 export default function Home() {
-  // Estado inicial sempre false para evitar erro de hidratação
   const [showWelcomeModal, setShowWelcomeModal] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<SelectedProduct | null>(null)
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
@@ -48,22 +46,13 @@ export default function Home() {
   const { toast } = useToast()
   const { theme } = useTheme()
   
-  // Buscar produtos da API
   const { products, loading: productsLoading, error: productsError } = useProducts()
 
-  // Verificar sessionStorage apenas no cliente após montagem (evita erro de hidratação)
   useEffect(() => {
-    // Verificar se já viu o modal nesta sessão
     const hasSeenModal = sessionStorage.getItem("welcomeModalShown")
-    
-    // Verificar se já navegou pelo site (mudou de página)
     const hasNavigated = sessionStorage.getItem("hasNavigated")
     
-    // Mostrar modal apenas se:
-    // 1. Não viu o modal ainda nesta sessão
-    // 2. E não navegou pelo site ainda (primeira vez na home)
     if (!hasSeenModal && !hasNavigated) {
-      // Usar requestAnimationFrame para garantir execução após hidratação
       requestAnimationFrame(() => {
         setShowWelcomeModal(true)
       })
@@ -72,7 +61,6 @@ export default function Home() {
 
   const handleCloseModal = () => {
     setShowWelcomeModal(false)
-    // Marcar que o modal foi visto nesta sessão
     if (typeof window !== "undefined") {
       sessionStorage.setItem("welcomeModalShown", "true")
     }
@@ -80,7 +68,6 @@ export default function Home() {
 
   const handleLogin = () => {
     setShowWelcomeModal(false)
-    // Marcar que o modal foi visto
     if (typeof window !== "undefined") {
       sessionStorage.setItem("welcomeModalShown", "true")
     }
@@ -88,7 +75,6 @@ export default function Home() {
   }
 
   const handleProductClick = async (product: ProductForComponent) => {
-    // Se o produto já tem descrição, usar direto
     if (product.description) {
       setSelectedProduct({
         id: product.id,
@@ -102,7 +88,6 @@ export default function Home() {
       })
       setIsProductModalOpen(true)
     } else {
-      // Se não tem descrição, buscar do banco usando o ID
       try {
         const res = await fetch(`/api/products/${product.id}`)
         if (res.ok) {
@@ -131,7 +116,6 @@ export default function Home() {
   }
 
   const handleAddToCart = (product: SelectedProduct) => {
-    // Converter preço de string formatada para número'
     const price = product.price 
       ? parseFloat(product.price.replace(/[^\d,]/g, '').replace(',', '.')) 
       : 0
@@ -144,7 +128,6 @@ export default function Home() {
       return
     }
 
-    // Adicionar ao carrinho
     addToCart({
       id: product.id,
       name: product.name,
@@ -152,20 +135,17 @@ export default function Home() {
       image: product.image,
     })
 
-    // Mostrar toast de sucesso
     toast({
       title: "Produto adicionado!",
       description: `${product.name} foi adicionado ao carrinho`,
       duration: 3000,
     })
 
-    // Fechar o modal
     handleCloseProductModal()
   }
 
   return (
     <>
-      {/* Animações CSS para o logo */}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes shimmer {
           0% { transform: translateX(-100%); }
@@ -240,17 +220,13 @@ export default function Home() {
       `}} />
       
       <main className="min-h-screen bg-gradient-to-br from-neutral-200 via-neutral-300 to-neutral-250 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-950 text-neutral-900 dark:text-neutral-100 relative overflow-hidden transition-colors duration-300">
-      {/* Textura sutil de fundo */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808015_1px,transparent_1px),linear-gradient(to_bottom,#80808015_1px,transparent_1px)] bg-[size:24px_24px] opacity-40 dark:opacity-20" />
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-neutral-400/10 dark:to-neutral-700/10" />
 
-      {/* CONTEÚDO */}
       <section className="relative pt-20 sm:pt-24 md:pt-32 pb-12 sm:pb-16 md:pb-20 flex flex-col items-center px-2 sm:px-4 z-10">
         <div className="text-center mb-8 sm:mb-12 md:mb-16">
           <div className="relative inline-block px-4">
-            {/* Container principal com logo e título - alinhados e mesmo tamanho */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-8">
-              {/* Logo sem reflexo */}
               <div className="relative w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40">
                 <div className="relative w-full h-full pb-2 z-10">
                   <Image
@@ -264,9 +240,7 @@ export default function Home() {
                 </div>
               </div>
               
-              {/* Título VAQ APP com animações automáticas */}
               <div className="relative flex flex-col items-center sm:items-start min-w-0">
-                {/* Texto com animações automáticas */}
                 <div className="relative w-full pb-1 overflow-visible">
                   <h1 
                     className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-wider drop-shadow-lg relative z-10 whitespace-nowrap animate-pulse-slow"
@@ -279,7 +253,6 @@ export default function Home() {
                       animation: 'pulse-glow 3s ease-in-out infinite',
                     }}
                   >
-                    {/* VAQ - Parte escura com efeito de brilho automático */}
                     <span className="inline-block relative overflow-hidden">
                       <span 
                         className="relative z-10 text-neutral-800 dark:text-neutral-100" 
@@ -291,7 +264,6 @@ export default function Home() {
                       >
                         VAQ
                       </span>
-                      {/* Efeito de brilho deslizante automático - mais suave */}
                       <span 
                         className="absolute inset-0 bg-gradient-to-r from-transparent via-neutral-400/40 dark:via-neutral-500/40 to-transparent"
                         style={{ 
@@ -301,7 +273,6 @@ export default function Home() {
                       />
                     </span>
                     
-                    {/* APP - Parte laranja suave */}
                     <span className="inline-block ml-1.5 sm:ml-2 relative">
                       <span 
                         className="relative z-10 text-orange-600"
@@ -312,7 +283,6 @@ export default function Home() {
                       >
                         APP
                       </span>
-                      {/* Efeito de brilho pulsante automático */}
                       <span 
                         className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0"
                         style={{ 
@@ -320,7 +290,6 @@ export default function Home() {
                           transform: 'translateX(-100%)',
                         }}
                       />
-                      {/* Efeito de pulso ao redor automático */}
                       <span 
                         className="absolute inset-0 rounded-lg bg-orange-500/25 blur-xl"
                         style={{ 
@@ -330,7 +299,6 @@ export default function Home() {
                     </span>
                   </h1>
                   
-                  {/* Efeito de brilho suave ao redor do logo completo automático */}
                   <div 
                     className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-500/0 via-orange-500/25 to-orange-500/0 blur-3xl"
                     style={{ 
@@ -341,19 +309,16 @@ export default function Home() {
               </div>
             </div>
             
-            {/* Subtítulo */}
             <p className="text-neutral-700 dark:text-neutral-300 text-lg sm:text-xl md:text-2xl font-medium mb-6 sm:mb-8 md:mb-10 px-4">
               O aplicativo do Vaqueiro
             </p>
             
-            {/* Linha decorativa abaixo do subtítulo */}
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 sm:w-32 h-1 bg-gradient-to-r from-transparent via-neutral-600 dark:via-neutral-400 to-transparent rounded-full opacity-60" />
           </div>
           <p className="text-neutral-700 dark:text-neutral-300 mb-6 sm:mb-8 md:mb-10 text-base sm:text-lg px-4 mt-8">
             Qualidade e tradição em equipamentos de vaquejada
           </p>
 
-          {/* Botão WhatsApp Centralizado com Animações */}
           <div className="flex justify-center px-4 mb-8">
             <a
               href="https://wa.me/5581999999999"
@@ -361,17 +326,14 @@ export default function Home() {
               rel="noopener noreferrer"
               className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:from-green-600 hover:via-green-700 hover:to-green-800 text-white font-bold transition-all duration-500 px-10 sm:px-16 py-5 sm:py-6 text-lg sm:text-xl shadow-2xl hover:shadow-green-500/60 hover:scale-110 hover:-translate-y-2 flex items-center justify-center animate-pulse hover:animate-none"
             >
-              {/* Efeito de brilho animado mais intenso */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
               
-              {/* Efeito de partículas brilhantes */}
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                 <div className="absolute top-3 left-6 w-3 h-3 bg-white rounded-full animate-ping" style={{ animationDelay: '0s' }} />
                 <div className="absolute bottom-3 right-8 w-2 h-2 bg-white rounded-full animate-ping" style={{ animationDelay: '0.3s' }} />
                 <div className="absolute top-1/2 left-1/4 w-1.5 h-1.5 bg-white rounded-full animate-ping" style={{ animationDelay: '0.6s' }} />
               </div>
               
-              {/* Efeito de ondas */}
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent animate-pulse" />
               </div>
@@ -389,7 +351,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Carrossel de Produtos */}
         <div id="produtos-section" className="w-full scroll-mt-20">
           <div className="text-center mb-8 sm:mb-10 md:mb-12 px-4">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-800 dark:text-neutral-100 mb-2 sm:mb-3 tracking-tight drop-shadow-sm">
@@ -416,7 +377,6 @@ export default function Home() {
           )}
         </div>
 
-        {/* Grid de Produtos em Destaque */}
         {productsLoading ? (
           <div className="text-center py-12">
             <p className="text-neutral-600">Carregando produtos...</p>
@@ -432,10 +392,8 @@ export default function Home() {
           />
         )}
 
-        {/* Seção Quem Somos */}
         <div id="sobre-section" className="w-full max-w-5xl mx-auto mb-12 sm:mb-16 md:mb-20 px-4 scroll-mt-20">
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl border border-neutral-800/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] p-8 sm:p-10 md:p-12">
-            {/* Efeito espelho/glassmorphism */}
             <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/5 to-transparent pointer-events-none rounded-2xl" />
             <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,rgba(255,255,255,0.08)_50%,transparent_100%)] pointer-events-none opacity-60 rounded-2xl" />
             
@@ -489,7 +447,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Seção de Marcas/Parceiros */}
         <BrandsSection
           brands={[
             {
@@ -527,14 +484,12 @@ export default function Home() {
       </section>
     </main>
     
-    {/* Modal de Boas-vindas */}
     <WelcomeModal
       isOpen={showWelcomeModal}
       onClose={handleCloseModal}
       onLogin={handleLogin}
     />
 
-    {/* Modal de Produto */}
     <ProductModal
       product={selectedProduct}
       isOpen={isProductModalOpen}

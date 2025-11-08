@@ -61,7 +61,6 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, account }) {
-      // Quando login com Google, criar ou atualizar usuário no banco
       if (account?.provider === 'google' && user?.email) {
         try {
           let usuario = await prisma.usuario.findUnique({
@@ -69,7 +68,6 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!usuario) {
-            // Criar novo usuário
             usuario = await prisma.usuario.create({
               data: {
                 email: user.email,
@@ -80,7 +78,6 @@ export const authOptions: NextAuthOptions = {
               },
             });
           } else {
-            // Atualizar dados do usuário existente
             await prisma.usuario.update({
               where: { id: usuario.id },
               data: {
@@ -91,7 +88,6 @@ export const authOptions: NextAuthOptions = {
             });
           }
 
-          // Criar ou atualizar conta OAuth
           if (account.providerAccountId) {
             try {
               const existingAccount = await prisma.account.findFirst({
@@ -139,7 +135,6 @@ export const authOptions: NextAuthOptions = {
           return true;
         } catch (error: any) {
           console.error('❌ Erro ao criar/atualizar usuário Google:', error?.message);
-          // Retornar true para não bloquear o login
           return true;
         }
       }
@@ -154,33 +149,28 @@ export const authOptions: NextAuthOptions = {
         token.role = (user as any).role || 'USER';
       }
 
-      // Verificar se o usuário ainda existe no banco (a cada refresh do token)
       if (token.email) {
         try {
           const usuario = await prisma.usuario.findUnique({
             where: { email: token.email as string },
           });
           
-          // Se o usuário não existir mais, invalidar o token
           if (!usuario) {
-            return null; // Isso forçará o logout
+            return null;
           }
           
-          // Atualizar dados do token com dados do banco
           token.role = usuario.role;
           token.id = usuario.id;
           token.name = usuario.name || token.name;
           token.image = usuario.image || token.image;
         } catch (error) {
           console.error('Erro ao buscar usuário:', error);
-          // Em caso de erro, manter o token (pode ser erro temporário)
         }
       }
 
       return token;
     },
     async session({ session, token }) {
-      // Se o token foi invalidado (null), retornar sessão vazia
       if (!token) {
         return null as any;
       }
@@ -200,8 +190,6 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-// Exportar função auth para uso em API routes (NextAuth v5)
-// No NextAuth v5, precisamos criar uma instância e usar o método auth()
 let authInstance: ReturnType<typeof NextAuth> | null = null;
 
 export async function getAuth() {

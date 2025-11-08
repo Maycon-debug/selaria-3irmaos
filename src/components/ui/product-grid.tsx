@@ -37,13 +37,11 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
   const [modalOpen, setModalOpen] = React.useState(false)
   const [addedProduct, setAddedProduct] = React.useState<Product | null>(null)
 
-  // Carregar favoritos do localStorage e do banco
   React.useEffect(() => {
     const loadFavorites = async () => {
       if (typeof window !== "undefined") {
         let localIds: string[] = []
         
-        // Carregar do localStorage primeiro (para usuários não logados)
         const saved = localStorage.getItem("favorites")
         if (saved) {
           try {
@@ -54,14 +52,12 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
           }
         }
 
-        // Se usuário estiver logado, carregar do banco também
         if (session?.user) {
           try {
             const res = await fetch('/api/favorites')
             if (res.ok) {
               const dbFavorites = await res.json()
               const dbProductIds = dbFavorites.map((f: any) => f.productId)
-              // Combinar com localStorage
               const allIds = [...new Set([...localIds, ...dbProductIds])]
               setFavorites(new Set(allIds))
               localStorage.setItem("favorites", JSON.stringify(allIds))
@@ -81,11 +77,9 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
     
     const isAdding = !favorites.has(productId)
     
-    // Tentar salvar no banco se usuário estiver logado
     if (session?.user) {
       try {
         if (isAdding) {
-          // Adicionar favorito no banco
           const res = await fetch('/api/favorites', {
             method: 'POST',
             headers: {
@@ -110,7 +104,6 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
             })
           }
         } else {
-          // Remover favorito do banco
           const res = await fetch(`/api/favorites?productId=${productId}`, {
             method: 'DELETE',
           })
@@ -129,7 +122,6 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
       }
     }
     
-    // Atualizar estado local e localStorage (sempre, como fallback)
     setFavorites((prev) => {
       const newSet = new Set(prev)
       if (newSet.has(productId)) {
@@ -138,7 +130,6 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
         newSet.add(productId)
       }
       
-      // Salvar no localStorage (fallback ou para usuários não logados)
       if (typeof window !== "undefined") {
         try {
           const productIds = Array.from(newSet)
@@ -151,7 +142,6 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
       return newSet
     })
     
-    // Redirecionar para página de favoritos se foi adicionado
     if (isAdding) {
       setTimeout(() => {
         window.location.href = "/favoritos"
@@ -163,11 +153,9 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
     e.preventDefault()
     e.stopPropagation()
     
-    // Converter preço de string para número
     const priceStr = product.price.replace("R$", "").trim()
     const price = parseFloat(priceStr.replace(/\./g, "").replace(",", "."))
     
-    // Adicionar ao carrinho usando o hook
     addToCart({
       id: product.id,
       name: product.name,
@@ -175,26 +163,22 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
       image: product.image,
     })
 
-    // Mostrar notificação
     toast({
       title: "Item adicionado ao carrinho",
       description: product.name,
       duration: 3000,
     })
 
-    // Mostrar modal
     setAddedProduct(product)
     setModalOpen(true)
   }
 
   const handleContinueShopping = () => {
-    // Produto já está no carrinho, apenas fecha o modal
     setModalOpen(false)
     setAddedProduct(null)
   }
 
   const handleGoToCart = () => {
-    // Produto já está no carrinho, navega para a página do carrinho
     setModalOpen(false)
     setAddedProduct(null)
     router.push("/carrinho")
@@ -221,12 +205,10 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
               onMouseLeave={() => setHoveredProduct(null)}
             >
               <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl border border-neutral-800/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] transition-all duration-300 hover:shadow-[0_12px_48px_0_rgba(0,0,0,0.6)] hover:scale-[1.02]">
-                {/* Efeito espelho/glassmorphism */}
                 <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-white/3 to-transparent pointer-events-none rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,rgba(255,255,255,0.05)_50%,transparent_100%)] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
                 
                 <div className="relative z-10">
-                  {/* Imagem do Produto */}
                   <div 
                     className="relative h-64 overflow-hidden bg-neutral-950 cursor-pointer group/image"
                     onClick={() => onProductClick?.(product)}
@@ -245,14 +227,12 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/80 via-transparent to-transparent" />
                     
-                    {/* Overlay de clique */}
                     <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 transition-all duration-300 flex items-center justify-center">
                       <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 text-white text-sm font-medium px-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20">
                         Clique para ver detalhes
                       </div>
                     </div>
                     
-                    {/* Badge de favorito */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
@@ -274,7 +254,6 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
                       />
                     </button>
 
-                    {/* Badge de categoria */}
                     {product.category && (
                       <div className="absolute top-3 left-3 z-20 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-xs font-medium border border-white/20">
                         {product.category}
@@ -282,9 +261,7 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
                     )}
                   </div>
 
-                  {/* Conteúdo do Card */}
                   <div className="p-5 space-y-3">
-                    {/* Rating */}
                     {product.rating && (
                       <div className="flex items-center gap-1">
                         {[...Array(5)].map((_, i) => (
@@ -304,12 +281,10 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
                       </div>
                     )}
 
-                    {/* Nome do Produto */}
                     <h3 className="text-lg font-semibold text-white line-clamp-2 group-hover:text-white transition-colors">
                       {product.name}
                     </h3>
 
-                    {/* Preço */}
                     <div className="flex items-baseline gap-2">
                       <span className="text-xl font-bold text-white">
                         {product.price}
@@ -321,7 +296,6 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
                       )}
                     </div>
 
-                    {/* Botão de Adicionar ao Carrinho */}
                     <button
                       className="w-full mt-4 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-all duration-300 border border-white/20 hover:border-white/30 backdrop-blur-sm hover:shadow-lg flex items-center justify-center gap-2 group/btn"
                       onClick={(e) => handleAddToCart(product, e)}
@@ -337,7 +311,6 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
         </div>
       </div>
 
-      {/* Modal de Adicionar ao Carrinho */}
       {addedProduct && (
         <AddToCartModal
           isOpen={modalOpen}
