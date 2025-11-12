@@ -10,7 +10,7 @@ async function main() {
 
   // Criar usuário admin
   const adminEmail = 'admin@vaquejada.com';
-  const adminPassword = 'admin123'; // Em produção, use bcrypt para hash
+  const adminPassword = 'admin123'; // Senha padrão (alterar em produção!)
 
   try {
     // Verificar se admin já existe
@@ -20,15 +20,20 @@ async function main() {
 
     if (existing) {
       console.log('✅ Admin já existe:', adminEmail);
+      console.log('💡 Para atualizar a senha, delete o usuário e execute novamente este script.');
       return;
     }
+
+    // VULN-001 CORRIGIDA: Usar bcrypt para hash da senha
+    const bcrypt = require('bcryptjs');
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
     // Criar admin
     const admin = await prisma.usuario.create({
       data: {
         email: adminEmail,
         name: 'Administrador',
-        password: adminPassword, // TODO: Implementar bcrypt
+        password: hashedPassword,
         role: 'ADMIN',
       },
     });
@@ -37,6 +42,7 @@ async function main() {
     console.log('📧 Email:', adminEmail);
     console.log('🔑 Senha:', adminPassword);
     console.log('⚠️  IMPORTANTE: Altere a senha em produção!');
+    console.log('⚠️  A senha foi hasheada com bcrypt.');
   } catch (error) {
     console.error('❌ Erro ao criar admin:', error);
   }

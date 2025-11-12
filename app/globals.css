@@ -1,6 +1,19 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Cursor pointer para elementos clicáveis */
+button:not(:disabled),
+a,
+[role="button"],
+[onclick],
+.cursor-pointer {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

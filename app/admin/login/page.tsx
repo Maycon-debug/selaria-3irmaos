@@ -41,9 +41,12 @@ export default function AdminLoginPage() {
         throw new Error(data.error || 'Erro ao fazer login');
       }
 
-      // Salvar token
+      // Salvar token no localStorage e cookie (para middleware)
       localStorage.setItem('admin_token', data.token);
       localStorage.setItem('admin_user', JSON.stringify(data.user));
+      
+      // Salvar também em cookie para o middleware poder verificar
+      document.cookie = `admin_token=${data.token}; path=/; max-age=86400; SameSite=Lax`;
 
       toast({
         title: 'Login realizado com sucesso!',

@@ -31,6 +31,7 @@ export function LottieLogo({
 
     const loadAnimation = async () => {
       for (const url of urls) {
+        if (!url) continue;
         try {
           const response = await fetch(url)
           if (response.ok) {

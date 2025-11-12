@@ -85,7 +85,7 @@ export function PrismaAdapter(p: PrismaClient): Adapter {
           token_type: data.token_type,
           scope: data.scope,
           id_token: data.id_token,
-          session_state: data.session_state,
+          session_state: data.session_state as string | null | undefined,
         },
       });
       return data as any;

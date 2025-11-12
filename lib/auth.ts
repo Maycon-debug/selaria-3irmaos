@@ -1,13 +1,21 @@
-import { type NextAuthOptions } from 'next-auth';
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import prisma from '@/src/lib/prisma';
 
-const secret = process.env.NEXTAUTH_SECRET || 'change-this-to-a-random-secret-key-in-production';
+// VULN-002 CORRIGIDA: Falha imediatamente se NEXTAUTH_SECRET não estiver configurado
+function getRequiredEnvVar(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`🔴 ERRO CRÍTICO: Variável de ambiente ${name} não configurada! A aplicação não pode iniciar sem ela.`);
+  }
+  return value;
+}
 
-export const authOptions: NextAuthOptions = {
+const secret = getRequiredEnvVar('NEXTAUTH_SECRET');
+
+export const authOptions = {
   secret,
   providers: [
     GoogleProvider({
@@ -25,9 +33,12 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        const email = credentials.email as string;
+        const password = credentials.password as string;
+
         try {
           const usuario = await prisma.usuario.findUnique({
-            where: { email: credentials.email },
+            where: { email },
           });
 
           if (!usuario || !usuario.password) {
@@ -35,7 +46,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           const isPasswordValid = await bcrypt.compare(
-            credentials.password,
+            password,
             usuario.password
           );
 
@@ -60,7 +71,8 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   callbacks: {
-    async signIn({ user, account }) {
+    // @ts-ignore - NextAuth v5 beta tem tipos incompatíveis temporariamente
+    async signIn({ user, account, profile }: any) {
       if (account?.provider === 'google' && user?.email) {
         try {
           let usuario = await prisma.usuario.findUnique({
@@ -140,7 +152,8 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user }) {
+    // @ts-ignore - NextAuth v5 beta tem tipos incompatíveis temporariamente
+    async jwt({ token, user }: any) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
@@ -170,7 +183,8 @@ export const authOptions: NextAuthOptions = {
 
       return token;
     },
-    async session({ session, token }) {
+    // @ts-ignore - NextAuth v5 beta tem tipos incompatíveis temporariamente
+    async session({ session, token }: any) {
       if (!token) {
         return null as any;
       }
@@ -194,6 +208,7 @@ let authInstance: ReturnType<typeof NextAuth> | null = null;
 
 export async function getAuth() {
   if (!authInstance) {
+    // @ts-ignore - NextAuth v5 beta tem tipos incompatíveis temporariamente
     authInstance = NextAuth(authOptions);
   }
   return authInstance.auth();

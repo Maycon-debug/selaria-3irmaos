@@ -18,7 +18,8 @@ import {
   X,
   Package,
   TrendingUp,
-  Star
+  Star,
+  ShoppingCart
 } from "lucide-react"
 import { useCart } from "@/src/hooks/use-cart"
 import { useToast } from "@/src/components/ui/toast"

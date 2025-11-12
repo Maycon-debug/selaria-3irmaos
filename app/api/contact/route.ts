@@ -1,46 +1,55 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/src/lib/prisma"
+import { ContactSchema } from '@/lib/validations';
+import { sanitizeHtml } from '@/lib/sanitize';
+import { checkRateLimit } from '@/lib/simple-rate-limit';
+import { handleApiError } from '@/lib/error-handler';
+import { z } from 'zod';
 
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  
   try {
-    const body = await request.json()
-    const { name, email, phone, subject, message } = body
-
-    // Validação dos campos obrigatórios
-    if (!name || !email || !phone || !subject || !message) {
+    // VULN-004 CORRIGIDA: Rate limiting para prevenir spam
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+               request.headers.get('x-real-ip') || 
+               'unknown';
+    
+    const rateLimit = checkRateLimit(`contact:${ip}`, 5, 60 * 60 * 1000); // 5 mensagens por hora
+    
+    if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: "Campos obrigatórios: nome, email, telefone, assunto e mensagem" },
-        { status: 400 }
-      )
+        { 
+          error: 'Muitas mensagens enviadas. Tente novamente mais tarde.',
+          retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000),
+        },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': '5',
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': rateLimit.resetTime.toString(),
+          }
+        }
+      );
     }
 
-    // Validação de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: "E-mail inválido" },
-        { status: 400 }
-      )
-    }
-
-    // Validação de telefone
-    const cleanedPhone = phone.replace(/\D/g, '')
-    if (cleanedPhone.length < 10 || cleanedPhone.length > 11) {
-      return NextResponse.json(
-        { error: "Telefone inválido. Digite um número válido (ex: (81) 99999-9999)" },
-        { status: 400 }
-      )
-    }
+    const body = await request.json();
+    
+    // VULN-005 CORRIGIDA: Validar com Zod
+    const validatedData = ContactSchema.parse(body);
+    
+    // VULN-005 CORRIGIDA: Sanitizar strings para prevenir XSS
+    const sanitizedData = {
+      ...validatedData,
+      name: sanitizeHtml(validatedData.name),
+      subject: sanitizeHtml(validatedData.subject),
+      message: sanitizeHtml(validatedData.message),
+    };
 
     // Salvar mensagem no banco de dados
     const mensagem = await prisma.mensagemContato.create({
-      data: {
-        name,
-        email,
-        phone: phone,
-        subject,
-        message,
-      },
+      data: sanitizedData,
     })
 
     return NextResponse.json(
@@ -51,19 +60,49 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    console.error("Erro ao salvar mensagem de contato:", error)
-    return NextResponse.json(
-      { error: "Erro ao enviar mensagem. Tente novamente mais tarde." },
-      { status: 500 }
-    )
+    // VULN-007 CORRIGIDA: Usar handler de erros centralizado
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { 
+          error: 'Dados inválidos',
+          details: error.issues.map(e => ({
+            field: e.path.join('.'),
+            message: e.message
+          }))
+        },
+        { status: 400 }
+      );
+    }
+    return handleApiError(error, requestId);
   }
 }
 
 // GET para listar mensagens (apenas para admin)
+// VULN-013 CORRIGIDA: Adicionada verificação de autenticação admin
 export async function GET(request: NextRequest) {
   try {
-    // Aqui você pode adicionar verificação de autenticação/admin
-    // Por enquanto, retorna todas as mensagens
+    // Verificar autenticação admin
+    const authHeader = request.headers.get('authorization');
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Não autorizado' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
+    
+    // Importar função de verificação de token
+    const { verifyToken } = await import('../auth/login/route');
+    const payload = await verifyToken(token);
+
+    if (!payload || payload.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Não autorizado' },
+        { status: 401 }
+      );
+    }
     
     const mensagens = await prisma.mensagemContato.findMany({
       orderBy: {

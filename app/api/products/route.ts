@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/src/lib/prisma';
 import { verifyToken } from '../auth/login/route';
+import { ProductSchema } from '@/lib/validations';
+import { sanitizeHtml } from '@/lib/sanitize';
+import { handleApiError } from '@/lib/error-handler';
+import { z } from 'zod';
 
 async function verifyAdmin(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
@@ -56,6 +60,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  
   try {
     const admin = await verifyAdmin(request);
     if (!admin) {
@@ -67,35 +73,36 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     
-    const { name, description, price, originalPrice, category, rating, image, stock } = body;
-
-    if (!name || !description || !price || !category || !image) {
-      return NextResponse.json(
-        { error: 'Campos obrigatórios: nome, descrição, preço, categoria, imagem' },
-        { status: 400 }
-      );
-    }
+    // VULN-005 CORRIGIDA: Validar com Zod
+    const validatedData = ProductSchema.parse(body);
+    
+    // VULN-005 CORRIGIDA: Sanitizar strings para prevenir XSS
+    const sanitizedData = {
+      ...validatedData,
+      name: sanitizeHtml(validatedData.name),
+      description: sanitizeHtml(validatedData.description),
+    };
 
     const produto = await prisma.produto.create({
-      data: {
-        name,
-        description,
-        price: parseFloat(price.toString()),
-        originalPrice: originalPrice ? parseFloat(originalPrice.toString()) : null,
-        category,
-        rating: rating ? parseFloat(rating.toString()) : 0,
-        image,
-        stock: stock || 0,
-      },
+      data: sanitizedData,
     });
 
     return NextResponse.json(produto, { status: 201 });
   } catch (error) {
-    console.error('Erro ao criar produto:', error);
-    return NextResponse.json(
-      { error: 'Erro ao criar produto' },
-      { status: 500 }
-    );
+    // VULN-007 CORRIGIDA: Usar handler de erros centralizado
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { 
+          error: 'Dados inválidos',
+          details: error.issues.map(e => ({
+            field: e.path.join('.'),
+            message: e.message
+          }))
+        },
+        { status: 400 }
+      );
+    }
+    return handleApiError(error, requestId);
   }
 }
 
