@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Habilitar output standalone para Docker
+  output: 'standalone',
   /* config options here */
   images: {
     // Permitir carregar imagens da pasta public
