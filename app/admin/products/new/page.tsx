@@ -239,6 +239,13 @@ export default function ProductFormPage({ params }: { params: Promise<{ id?: str
 
       if (!res.ok) {
         const error = await res.json();
+        // Mostrar detalhes de validação se existirem
+        if (error.details && Array.isArray(error.details)) {
+          const detailsMessage = error.details
+            .map((d: any) => `${d.field}: ${d.message}`)
+            .join('\n');
+          throw new Error(`${error.error || 'Erro ao salvar produto'}\n\n${detailsMessage}`);
+        }
         throw new Error(error.error || 'Erro ao salvar produto');
       }
 

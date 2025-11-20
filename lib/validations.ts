@@ -5,8 +5,7 @@ import { z } from 'zod';
 export const ProductSchema = z.object({
   name: z.string()
     .min(3, 'Nome deve ter no mínimo 3 caracteres')
-    .max(100, 'Nome deve ter no máximo 100 caracteres')
-    .regex(/^[a-zA-Z0-9\s\-áéíóúãõâêôÁÉÍÓÚÃÕÂÊÔ]+$/, 'Nome contém caracteres inválidos'),
+    .max(100, 'Nome deve ter no máximo 100 caracteres'),
   
   description: z.string()
     .min(10, 'Descrição deve ter no mínimo 10 caracteres')
@@ -33,7 +32,13 @@ export const ProductSchema = z.object({
   
   image: z.string()
     .url('URL de imagem inválida')
-    .regex(/^https:\/\/(res\.cloudinary\.com|cdn\.filestackapi\.com)/, 'Apenas URLs de serviços confiáveis'),
+    .refine(
+      (url) => {
+        // Aceita URLs do Cloudinary, Filestack ou qualquer URL HTTPS válida
+        return url.startsWith('https://');
+      },
+      { message: 'A URL da imagem deve começar com https://' }
+    ),
   
   stock: z.number()
     .int('Estoque deve ser inteiro')

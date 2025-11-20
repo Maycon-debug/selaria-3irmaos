@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { config } from 'dotenv';
+import bcrypt from 'bcryptjs';
 
 config({ path: '.env.local' });
 
@@ -25,11 +26,10 @@ async function main() {
     }
 
     // VULN-001 CORRIGIDA: Usar bcrypt para hash da senha
-    const bcrypt = require('bcryptjs');
     const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
     // Criar admin
-    const admin = await prisma.usuario.create({
+    await prisma.usuario.create({
       data: {
         email: adminEmail,
         name: 'Administrador',
