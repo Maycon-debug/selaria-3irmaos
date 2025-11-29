@@ -9,6 +9,7 @@ import { AddToCartModal } from "./add-to-cart-modal"
 import { useCart } from "@/src/hooks/use-cart"
 import { useToast } from "./toast"
 import { useSession } from "next-auth/react"
+import { ImagePlaceholder } from "./image-placeholder"
 
 interface Product {
   id: string
@@ -213,19 +214,29 @@ export function ProductGrid({ products, className, onProductClick }: ProductGrid
                     className="relative h-64 overflow-hidden bg-neutral-950 cursor-pointer group/image"
                     onClick={() => onProductClick?.(product)}
                   >
-                    <div
-                      className={cn(
-                        "absolute inset-0 transition-transform duration-700 ease-out",
-                        hoveredProduct === product.id ? "scale-110" : "scale-100"
-                      )}
-                      style={{
-                        backgroundImage: `url(${product.image})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        backgroundRepeat: "no-repeat",
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/80 via-transparent to-transparent" />
+                    {product.image && product.image.startsWith('http') ? (
+                      <>
+                        <div
+                          className={cn(
+                            "absolute inset-0 transition-transform duration-700 ease-out",
+                            hoveredProduct === product.id ? "scale-110" : "scale-100"
+                          )}
+                          style={{
+                            backgroundImage: `url(${product.image})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            backgroundRepeat: "no-repeat",
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/80 via-transparent to-transparent" />
+                      </>
+                    ) : (
+                      <ImagePlaceholder 
+                        className="w-full h-full"
+                        text="Imagem não disponível"
+                        size="lg"
+                      />
+                    )}
                     
                     <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 transition-all duration-300 flex items-center justify-center">
                       <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 text-white text-sm font-medium px-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20">

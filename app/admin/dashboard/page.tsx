@@ -25,8 +25,7 @@ import {
 } from 'lucide-react';
 import { Input } from '@/src/components/ui/input';
 import { formatPrice } from '@/src/lib/product-utils';
-import { useMessageCount } from '@/src/hooks/use-message-count';
-import { PromocaoModal } from '@/src/components/admin/promocao-modal';
+import { ErrorState } from '@/src/components/ui/error-state';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -382,9 +381,13 @@ export default function AdminDashboard() {
               <p className="text-neutral-400">Carregando produtos...</p>
             </div>
           ) : error ? (
-            <div className="p-12 text-center">
-              <p className="text-red-400">Erro ao carregar produtos: {error}</p>
-            </div>
+            <ErrorState
+              title="Erro ao carregar produtos"
+              message="Não foi possível carregar a lista de produtos. Verifique sua conexão e tente novamente."
+              showRetry={true}
+              onRetry={() => window.location.reload()}
+              className="p-12"
+            />
           ) : filteredProducts.length === 0 ? (
             <div className="p-12 text-center">
               <Package className="w-16 h-16 text-neutral-600 mx-auto mb-4" />

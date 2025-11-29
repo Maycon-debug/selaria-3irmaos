@@ -24,6 +24,7 @@ import {
 import { useCart } from "@/src/hooks/use-cart"
 import { useToast } from "@/src/components/ui/toast"
 import { AddToCartModal } from "@/src/components/ui/add-to-cart-modal"
+import { ErrorState } from "@/src/components/ui/error-state"
 
 type ViewMode = 'grid' | 'list'
 type SortOption = 'name' | 'price-asc' | 'price-desc' | 'rating' | 'newest'
@@ -358,15 +359,13 @@ export default function ProdutosPage() {
             <p className="text-neutral-400 text-lg">Carregando produtos...</p>
           </div>
         ) : error ? (
-          <div className="text-center py-20">
-            <Package className="w-16 h-16 text-neutral-600 mx-auto mb-4" />
-            <p className="text-red-400 text-lg mb-4">Erro ao carregar produtos: {error}</p>
-            <Link href="/">
-              <Button variant="outline" className="bg-neutral-800/50 border-neutral-700 text-neutral-300 hover:bg-neutral-700 hover:text-white">
-                Voltar ao início
-              </Button>
-            </Link>
-          </div>
+          <ErrorState
+            title="Não foi possível carregar os produtos"
+            message="Ocorreu um erro ao buscar os produtos. Por favor, tente novamente em alguns instantes."
+            showRetry={true}
+            onRetry={() => window.location.reload()}
+            showHomeButton={true}
+          />
         ) : filteredAndSortedProducts.length === 0 ? (
           <div className="text-center py-20">
             <Package className="w-16 h-16 text-neutral-600 mx-auto mb-4" />

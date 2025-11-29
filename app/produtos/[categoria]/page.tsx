@@ -10,6 +10,7 @@ import { formatPrice } from "@/src/lib/product-utils"
 import { useCart } from "@/src/hooks/use-cart"
 import { useToast } from "@/src/components/ui/toast"
 import { AddToCartModal } from "@/src/components/ui/add-to-cart-modal"
+import { ErrorState } from "@/src/components/ui/error-state"
 
 // Mapeamento de categorias da URL para categorias do banco
 const categoriaParaCategoria: Record<string, string> = {
@@ -168,12 +169,13 @@ export default function ProdutoCategoriaPage({ params }: PageProps) {
               <p className="text-neutral-600 text-lg">Carregando produtos...</p>
             </div>
           ) : error ? (
-            <div className="text-center py-20">
-              <p className="text-red-600 text-lg">Erro ao carregar produtos: {error}</p>
-              <Link href="/" className="text-orange-500 hover:text-orange-600 underline mt-4 inline-block">
-                Voltar ao início
-              </Link>
-            </div>
+            <ErrorState
+              title="Não foi possível carregar os produtos"
+              message="Ocorreu um erro ao buscar os produtos desta categoria. Por favor, tente novamente em alguns instantes."
+              showRetry={true}
+              onRetry={() => window.location.reload()}
+              showHomeButton={true}
+            />
           ) : products.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {products.map((produto) => (

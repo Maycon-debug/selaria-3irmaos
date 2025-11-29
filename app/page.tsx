@@ -8,6 +8,8 @@ import { ProductGrid } from "@/src/components/ui/product-grid"
 import { ProductModal } from "@/src/components/ui/product-modal"
 import { BrandsSection } from "@/src/components/ui/brands-section"
 import { WelcomeModal } from "@/src/components/ui/welcome-modal"
+import { ErrorState } from "@/src/components/ui/error-state"
+import { Package } from "lucide-react"
 import { useProducts } from "@/src/hooks/use-products"
 import { useCart } from "@/src/hooks/use-cart"
 import { useToast } from "@/src/components/ui/toast"
@@ -363,11 +365,25 @@ export default function Home() {
           
           {productsLoading ? (
             <div className="text-center py-12">
-              <p className="text-neutral-600">Carregando produtos...</p>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mb-3"></div>
+              <p className="text-neutral-600 dark:text-neutral-400">Carregando produtos...</p>
             </div>
           ) : productsError ? (
+            <ErrorState
+              title="Não foi possível carregar os produtos"
+              message="Ocorreu um erro ao buscar os produtos. Por favor, tente novamente em alguns instantes."
+              showRetry={true}
+              onRetry={() => window.location.reload()}
+            />
+          ) : products.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-red-600">Erro ao carregar produtos: {productsError}</p>
+              <Package className="w-16 h-16 text-neutral-400 mx-auto mb-4 opacity-50" />
+              <p className="text-neutral-600 dark:text-neutral-400 text-lg mb-2">
+                Nenhum produto disponível no momento
+              </p>
+              <p className="text-neutral-500 dark:text-neutral-500 text-sm">
+                Novos produtos serão adicionados em breve
+              </p>
             </div>
           ) : (
             <ProductCarousel
@@ -379,11 +395,25 @@ export default function Home() {
 
         {productsLoading ? (
           <div className="text-center py-12">
-            <p className="text-neutral-600">Carregando produtos...</p>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mb-3"></div>
+            <p className="text-neutral-600 dark:text-neutral-400">Carregando produtos...</p>
           </div>
         ) : productsError ? (
+          <ErrorState
+            title="Não foi possível carregar os produtos"
+            message="Ocorreu um erro ao buscar os produtos. Por favor, tente novamente em alguns instantes."
+            showRetry={true}
+            onRetry={() => window.location.reload()}
+          />
+        ) : products.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-red-600">Erro ao carregar produtos: {productsError}</p>
+            <Package className="w-16 h-16 text-neutral-400 mx-auto mb-4 opacity-50" />
+            <p className="text-neutral-600 dark:text-neutral-400 text-lg mb-2">
+              Nenhum produto disponível no momento
+            </p>
+            <p className="text-neutral-500 dark:text-neutral-500 text-sm">
+              Novos produtos serão adicionados em breve
+            </p>
           </div>
         ) : (
           <ProductGrid

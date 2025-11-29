@@ -4,6 +4,7 @@ import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { TextToSpeech } from "./text-to-speech"
+import { ImagePlaceholder } from "./image-placeholder"
 
 interface Product {
   id: string
@@ -109,23 +110,31 @@ export function ProductCarousel({ products, className, onProductClick }: Product
                   onMouseLeave={() => handleMouseLeave(product.id)}
                   onClick={() => onProductClick?.(product)}
                 >
-                  <div
-                    className={cn(
-                      "absolute inset-0 transition-transform duration-300 ease-out cursor-zoom-in",
-                      isHovering === product.id ? "scale-[2.5]" : "scale-100"
-                    )}
-                    style={{
-                      backgroundImage: `url(${product.image})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: mousePositions[product.id]
-                        ? `${mousePositions[product.id].x}% ${mousePositions[product.id].y}%`
-                        : "center",
-                      backgroundRepeat: "no-repeat",
-                      transition: isHovering === product.id 
-                        ? "background-position 0s ease-out, transform 0.7s ease-out"
-                        : "background-position 0.3s ease-out, transform 0.7s ease-out",
-                    }}
-                  />
+                  {product.image && product.image.startsWith('http') ? (
+                    <div
+                      className={cn(
+                        "absolute inset-0 transition-transform duration-300 ease-out cursor-zoom-in",
+                        isHovering === product.id ? "scale-[2.5]" : "scale-100"
+                      )}
+                      style={{
+                        backgroundImage: `url(${product.image})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: mousePositions[product.id]
+                          ? `${mousePositions[product.id].x}% ${mousePositions[product.id].y}%`
+                          : "center",
+                        backgroundRepeat: "no-repeat",
+                        transition: isHovering === product.id 
+                          ? "background-position 0s ease-out, transform 0.7s ease-out"
+                          : "background-position 0.3s ease-out, transform 0.7s ease-out",
+                      }}
+                    />
+                  ) : (
+                    <ImagePlaceholder 
+                      className="w-full h-full"
+                      text="Imagem não disponível"
+                      size="lg"
+                    />
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                   <div className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-neutral-900/90 backdrop-blur-sm text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none border border-neutral-700/50 shadow-lg hidden sm:block">
                     🔍 Mova o mouse para explorar | Clique para ver detalhes
