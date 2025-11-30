@@ -3,8 +3,10 @@
 import Link from "next/link"
 import { Instagram, Facebook, MessageCircle, Mail, Phone, MapPin } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useSiteConfig } from "@/src/hooks/use-site-config"
 
 export function Footer() {
+  const { config } = useSiteConfig()
   return (
     <footer className="relative mt-auto border-t border-neutral-900/30 bg-gradient-to-b from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-2xl">
       {/* Efeito espelho/glassmorphism */}
@@ -166,7 +168,7 @@ export function Footer() {
         <div className="mt-12 pt-8 border-t border-white/10">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-neutral-500 text-sm text-center sm:text-left">
-              © {new Date().getFullYear()} VAQ APP. Todos os direitos reservados.
+              © {new Date().getFullYear()} {config.siteName || 'VAQ APP'}. Todos os direitos reservados.
             </p>
             <div className="flex items-center gap-6 text-sm text-neutral-500">
               <Link href="/termos" className="hover:text-white transition-colors duration-200">

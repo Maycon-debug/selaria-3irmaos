@@ -6,9 +6,7 @@ function getEmailTemplate(
   replyText: string,
   originalSubject: string
 ): string {
-  const logoUrl = process.env.NEXT_PUBLIC_APP_URL 
-    ? `${process.env.NEXT_PUBLIC_APP_URL}/images/logo/vq-app-logo.png`
-    : "https://via.placeholder.com/200x200?text=Selaria+III+Irmãos"
+  const logoUrl = "https://via.placeholder.com/200x200?text=VAQ+APP"
 
   return `
 <!DOCTYPE html>

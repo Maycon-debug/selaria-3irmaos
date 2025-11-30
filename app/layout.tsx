@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/src/hooks/use-theme";
 import SessionProvider from "@/src/components/providers/session-provider";
 import { PageTransition } from "@/src/components/layout/page-transition";
 import { NavigationTracker } from "@/src/components/layout/navigation-tracker";
+import { WhatsAppFloating } from "@/src/components/ui/whatsapp-floating";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,6 +59,7 @@ export default function RootLayout({
                   {children}
                 </main>
                 <ConditionalFooter />
+                <WhatsAppFloating />
               </ToastProvider>
             </CartProvider>
           </SessionProvider>

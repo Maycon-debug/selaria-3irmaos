@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     // 2. RECEBER DADOS DA IMAGEM
     const body = await request.json();
-    const { imageData, folder } = body;
+    const { imageData, folder, removeBackground } = body;
 
     if (!imageData) {
       return NextResponse.json(
@@ -61,7 +61,9 @@ export async function POST(request: NextRequest) {
 
     // 4. FAZER UPLOAD PARA CLOUDINARY
     // Esta função está em src/lib/cloudinary.ts
-    const imageUrl = await uploadImage(imageData, folder || 'produtos');
+    // Se folder é 'logo', automaticamente remove o fundo
+    const shouldRemoveBackground = removeBackground === true || folder === 'logo';
+    const imageUrl = await uploadImage(imageData, folder || 'produtos', shouldRemoveBackground);
 
     // 4. RETORNAR URL PÚBLICA
     return NextResponse.json({

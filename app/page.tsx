@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { ProductCarousel } from "@/src/components/ui/product-carousel"
@@ -11,6 +11,7 @@ import { WelcomeModal } from "@/src/components/ui/welcome-modal"
 import { ErrorState } from "@/src/components/ui/error-state"
 import { Package } from "lucide-react"
 import { useProducts } from "@/src/hooks/use-products"
+import { useSiteConfig } from "@/src/hooks/use-site-config"
 import { useCart } from "@/src/hooks/use-cart"
 import { useToast } from "@/src/components/ui/toast"
 import { useTheme } from "@/src/hooks/use-theme"
@@ -40,7 +41,30 @@ type ProductForComponent = {
 }
 
 export default function Home() {
+  const { config, loading: configLoading } = useSiteConfig()
   const [showWelcomeModal, setShowWelcomeModal] = useState(false)
+  const [logoError, setLogoError] = useState(false)
+  const previousLogoRef = useRef<string | undefined>(undefined)
+  
+  // Log quando config.siteLogo mudar e resetar erro
+  useEffect(() => {
+    if (previousLogoRef.current !== config.siteLogo) {
+      console.log('🔄 Logo mudou:', {
+        anterior: previousLogoRef.current,
+        novo: config.siteLogo,
+        loading: configLoading
+      });
+      previousLogoRef.current = config.siteLogo;
+      // Resetar erro quando logo mudar (de forma assíncrona)
+      if (config.siteLogo && logoError) {
+        console.log('🔄 Resetando erro porque logo mudou');
+        setTimeout(() => {
+          setLogoError(false);
+        }, 0);
+      }
+    }
+  }, [config.siteLogo, configLoading, logoError])
+  
   const [selectedProduct, setSelectedProduct] = useState<SelectedProduct | null>(null)
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
   const router = useRouter()
@@ -49,6 +73,24 @@ export default function Home() {
   const { theme } = useTheme()
   
   const { products, loading: productsLoading, error: productsError } = useProducts()
+  
+  // Debug: log quando config mudar
+  useEffect(() => {
+    console.log('🏠 Home - Config atual:', {
+      siteLogo: config.siteLogo,
+      siteName: config.siteName,
+      isCloudinary: config.siteLogo?.startsWith('https://res.cloudinary.com'),
+      startsWithHttps: config.siteLogo?.startsWith('https://'),
+      loading: configLoading
+    });
+    
+    // Resetar erro quando logo mudar (de forma assíncrona para evitar warning do linter)
+    if (config.siteLogo && logoError) {
+      setTimeout(() => {
+        setLogoError(false)
+      }, 0)
+    }
+  }, [config, configLoading, logoError])
 
   useEffect(() => {
     const hasSeenModal = sessionStorage.getItem("welcomeModalShown")
@@ -229,18 +271,61 @@ export default function Home() {
         <div className="text-center mb-8 sm:mb-12 md:mb-16">
           <div className="relative inline-block px-4">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-8">
-              <div className="relative w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40">
-                <div className="relative w-full h-full pb-2 z-10">
-                  <Image
-                    src="/images/logo/vq-app-logo.png"
-                    alt="VAQ APP Logo"
-                    fill
-                    className="object-contain relative z-10"
-                    priority
-                    sizes="(max-width: 640px) 112px, (max-width: 768px) 128px, (max-width: 1024px) 144px, 160px"
-                  />
+              {config.siteLogo && !logoError && !configLoading ? (
+                <div className="relative w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 min-h-[112px]">
+                  <div className="relative w-full h-full z-10">
+                    <Image
+                      key={`logo-${config.siteLogo}-${logoError ? 'error' : 'ok'}`}
+                      src={config.siteLogo}
+                      alt={`${config.siteName || 'VAQ APP'} Logo`}
+                      fill
+                      className="object-contain relative z-10 opacity-100"
+                      style={{ 
+                        objectFit: 'contain',
+                        opacity: 1,
+                        visibility: 'visible'
+                      }}
+                      priority
+                      unoptimized={config.siteLogo.startsWith('http://') || config.siteLogo.startsWith('https://')}
+                      sizes="(max-width: 640px) 112px, (max-width: 768px) 128px, (max-width: 1024px) 144px, 160px"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        const currentSrc = target.src;
+                        console.error('❌ Erro ao carregar logo:', {
+                          currentSrc,
+                          originalLogo: config.siteLogo,
+                          logoError
+                        });
+                        // Marcar erro se ainda não estiver em erro
+                        if (!logoError) {
+                          console.log('🔄 Erro ao carregar logo');
+                          setLogoError(true);
+                        }
+                      }}
+                      onLoad={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        const currentSrc = target.src;
+                        console.log('✅ Logo carregado com sucesso:', {
+                          currentSrc,
+                          originalLogo: config.siteLogo,
+                          logoError,
+                          imageWidth: target.naturalWidth,
+                          imageHeight: target.naturalHeight
+                        });
+                        // Resetar erro quando logo carregar com sucesso
+                        if (logoError) {
+                          console.log('🔄 Resetando erro - logo carregou com sucesso');
+                          setLogoError(false);
+                        }
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
+              ) : configLoading ? (
+                <div className="relative w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 min-h-[112px] flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                </div>
+              ) : null}
               
               <div className="relative flex flex-col items-center sm:items-start min-w-0">
                 <div className="relative w-full pb-1 overflow-visible">
@@ -264,7 +349,7 @@ export default function Home() {
                             : 'color-shift-vaq 4s ease-in-out infinite'
                         }}
                       >
-                        VAQ
+                        {(config.siteName || 'VAQ APP').split(' ')[0] || 'VAQ'}
                       </span>
                       <span 
                         className="absolute inset-0 bg-gradient-to-r from-transparent via-neutral-400/40 dark:via-neutral-500/40 to-transparent"
@@ -283,7 +368,7 @@ export default function Home() {
                           textShadow: '0 0 4px rgba(234, 88, 12, 0.3)',
                         }}
                       >
-                        APP
+                        {(config.siteName || 'VAQ APP').split(' ').slice(1).join(' ') || 'APP'}
                       </span>
                       <span 
                         className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0"
@@ -320,37 +405,6 @@ export default function Home() {
           <p className="text-neutral-700 dark:text-neutral-300 mb-6 sm:mb-8 md:mb-10 text-base sm:text-lg px-4 mt-8">
             Qualidade e tradição em equipamentos de vaquejada
           </p>
-
-          <div className="flex justify-center px-4 mb-8">
-            <a
-              href="https://wa.me/5581999999999"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:from-green-600 hover:via-green-700 hover:to-green-800 text-white font-bold transition-all duration-500 px-10 sm:px-16 py-5 sm:py-6 text-lg sm:text-xl shadow-2xl hover:shadow-green-500/60 hover:scale-110 hover:-translate-y-2 flex items-center justify-center animate-pulse hover:animate-none"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-              
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                <div className="absolute top-3 left-6 w-3 h-3 bg-white rounded-full animate-ping" style={{ animationDelay: '0s' }} />
-                <div className="absolute bottom-3 right-8 w-2 h-2 bg-white rounded-full animate-ping" style={{ animationDelay: '0.3s' }} />
-                <div className="absolute top-1/2 left-1/4 w-1.5 h-1.5 bg-white rounded-full animate-ping" style={{ animationDelay: '0.6s' }} />
-              </div>
-              
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent animate-pulse" />
-              </div>
-              
-              <span className="relative z-10 flex items-center justify-center gap-4">
-                <svg className="w-8 h-8 sm:w-10 sm:h-10 group-hover:animate-bounce group-hover:rotate-12 transition-all duration-300" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-                </svg>
-                <span className="tracking-wide drop-shadow-lg">Entre em contato agora via whatsapp</span>
-                <svg className="w-6 h-6 sm:w-7 sm:h-7 group-hover:translate-x-3 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </span>
-            </a>
-          </div>
         </div>
 
         <div id="produtos-section" className="w-full scroll-mt-20">

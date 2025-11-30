@@ -13,11 +13,13 @@ export default cloudinary;
  * Faz upload de uma imagem para o Cloudinary
  * @param imageData - Base64 ou URL da imagem
  * @param folder - Pasta onde salvar (ex: 'produtos')
+ * @param removeBackground - Se true, remove o fundo da imagem automaticamente (usar para logos)
  * @returns URL pública da imagem no Cloudinary
  */
 export async function uploadImage(
   imageData: string,
-  folder: string = 'produtos'
+  folder: string = 'produtos',
+  removeBackground: boolean = false
 ): Promise<string> {
   try {
     // Verificar se Cloudinary está configurado
@@ -35,20 +37,43 @@ export async function uploadImage(
       throw new Error('Formato de imagem inválido. Use uma imagem válida.');
     }
 
-    // Se é uma URL local (base64), faz upload
-    const result = await cloudinary.uploader.upload(imageData, {
+    // Configurações base de upload
+    // Para logos, usar tamanho ideal para visualização (400x400 é ideal para logos)
+    const isLogo = folder === 'logo';
+    const maxSize = isLogo ? 800 : 1200; // Logos menores para melhor performance
+    
+    const uploadOptions: any = {
       folder: folder,
       resource_type: 'image',
       transformation: [
         {
-          width: 1200,
-          height: 1200,
+          width: maxSize,
+          height: maxSize,
           crop: 'limit', // Limita tamanho mas mantém proporção
           quality: 'auto', // Otimiza qualidade automaticamente
-          fetch_format: 'auto', // Converte para formato mais eficiente
+          fetch_format: isLogo && removeBackground ? 'png' : 'auto', // PNG mantém transparência se remover fundo
         },
       ],
-    });
+    };
+
+    // Se remoção de fundo está habilitada, adicionar transformação
+    if (removeBackground) {
+      uploadOptions.transformation = [
+        {
+          effect: 'background_removal', // Addon do Cloudinary para remoção de fundo
+          quality: 'auto',
+          fetch_format: 'png', // PNG mantém transparência
+        },
+        {
+          width: maxSize,
+          height: maxSize,
+          crop: 'limit',
+        },
+      ];
+    }
+
+    // Se é uma URL local (base64), faz upload
+    const result = await cloudinary.uploader.upload(imageData, uploadOptions);
 
     if (!result?.secure_url) {
       throw new Error('Upload concluído mas URL não foi retornada');
@@ -61,6 +86,11 @@ export async function uploadImage(
     // Mensagens de erro mais específicas
     if (error?.http_code === 401) {
       throw new Error('Credenciais do Cloudinary inválidas. Verifique CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY e CLOUDINARY_API_SECRET no arquivo .env.local');
+    }
+    
+    // Erro específico para remoção de fundo não disponível
+    if (error?.http_code === 400 && removeBackground) {
+      throw new Error('Remoção de fundo não disponível. Verifique se o addon Background Removal está habilitado na sua conta Cloudinary.');
     }
     
     if (error?.message) {

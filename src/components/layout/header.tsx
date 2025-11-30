@@ -21,6 +21,7 @@ import { useRouter } from "next/navigation"
 import { useToast } from "@/src/components/ui/toast"
 import { useTheme } from "@/src/hooks/use-theme"
 import { LogoutConfirmModal } from "@/src/components/ui/logout-confirm-modal"
+import { useSiteConfig } from "@/src/hooks/use-site-config"
 
 type ExtendedUser = {
   id?: string
@@ -41,7 +42,13 @@ export function Header() {
   const router = useRouter()
   const { toast } = useToast()
   const { theme, toggleTheme } = useTheme()
+  const { config } = useSiteConfig()
   const userMenuRef = useRef<HTMLDivElement>(null)
+  
+  // Dividir o nome do site em duas partes (antes e depois do espaço)
+  const siteNameParts = (config.siteName || 'VAQ APP').split(' ')
+  const firstName = siteNameParts[0] || 'VAQ'
+  const lastName = siteNameParts.slice(1).join(' ') || 'APP'
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -134,22 +141,38 @@ export function Header() {
               href="/" 
               className="flex items-center group relative overflow-visible px-2 py-1 rounded-lg transition-all duration-300 hover:bg-white/5"
             >
-              <h1 className="text-base sm:text-lg lg:text-xl font-bold tracking-tight drop-shadow-lg transition-all duration-300 group-hover:scale-110 relative z-10">
-                <span className="inline-block relative overflow-hidden">
-                  <span className="relative z-10 text-white group-hover:text-neutral-200 transition-colors duration-300">
-                    VAQ
+              {config.siteLogo && (config.siteLogo.startsWith('http') || config.siteLogo.startsWith('/')) ? (
+                <div className="relative w-10 h-10 sm:w-12 sm:h-12">
+                  <Image
+                    key={config.siteLogo}
+                    src={config.siteLogo.startsWith('http') ? `${config.siteLogo}?v=${config.siteLogo.length}` : config.siteLogo}
+                    alt={config.siteName || 'Logo'}
+                    fill
+                    className="object-contain"
+                    priority
+                    unoptimized={config.siteLogo.startsWith('http')}
+                  />
+                </div>
+              ) : (
+                <h1 className="text-base sm:text-lg lg:text-xl font-bold tracking-tight drop-shadow-lg transition-all duration-300 group-hover:scale-110 relative z-10">
+                  <span className="inline-block relative overflow-hidden">
+                    <span className="relative z-10 text-white group-hover:text-neutral-200 transition-colors duration-300">
+                      {firstName}
+                    </span>
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
                   </span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
-                </span>
-                
-                <span className="inline-block ml-1 sm:ml-1.5 relative">
-                  <span className="relative z-10 text-orange-500 group-hover:text-orange-400 transition-colors duration-300 group-hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]">
-                    APP
-                  </span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out delay-100" />
-                  <span className="absolute inset-0 rounded-md bg-orange-500/25 opacity-0 group-hover:opacity-100 blur-md animate-pulse transition-opacity duration-500 -z-10" />
-                </span>
-              </h1>
+                  
+                  {lastName && (
+                    <span className="inline-block ml-1 sm:ml-1.5 relative">
+                      <span className="relative z-10 text-orange-500 group-hover:text-orange-400 transition-colors duration-300 group-hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]">
+                        {lastName}
+                      </span>
+                      <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out delay-100" />
+                      <span className="absolute inset-0 rounded-md bg-orange-500/25 opacity-0 group-hover:opacity-100 blur-md animate-pulse transition-opacity duration-500 -z-10" />
+                    </span>
+                  )}
+                </h1>
+              )}
               
               <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-orange-500/0 via-orange-500/25 to-orange-500/0 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-500 -z-0" />
             </Link>

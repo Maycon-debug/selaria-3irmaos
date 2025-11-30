@@ -21,10 +21,10 @@ export function BrandsSection({ brands, className }: BrandsSectionProps) {
   return (
     <div className={cn("w-full max-w-7xl mx-auto px-2 sm:px-4 py-8 sm:py-12 md:py-16", className)}>
       <div className="text-center mb-8 sm:mb-10 md:mb-12">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-800 mb-2 sm:mb-3 tracking-tight drop-shadow-sm">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-800 dark:text-white mb-2 sm:mb-3 tracking-tight drop-shadow-sm">
           Nossos Parceiros
         </h2>
-        <p className="text-neutral-700 text-sm sm:text-base md:text-lg px-4">
+        <p className="text-neutral-700 dark:text-neutral-200 text-sm sm:text-base md:text-lg px-4">
           Trabalhamos com as melhores marcas do mercado
         </p>
       </div>
