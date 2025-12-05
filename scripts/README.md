@@ -63,3 +63,4 @@ Isso permite que scripts locais sejam executados sem precisar de permissões de 
 
 
 
+
