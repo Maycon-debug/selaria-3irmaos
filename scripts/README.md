@@ -60,3 +60,6 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 Isso permite que scripts locais sejam executados sem precisar de permissões de administrador.
 
 
+
+
+
